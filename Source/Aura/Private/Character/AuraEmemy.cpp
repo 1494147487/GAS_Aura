@@ -41,6 +41,11 @@ void AAuraEmemy::UnHighlightActor()
 	}
 }
 
+int32 AAuraEmemy::GetPlayerLevel()
+{
+	return Level;
+}
+
 void AAuraEmemy::BeginPlay()
 {
 	Super::BeginPlay();

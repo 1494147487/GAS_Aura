@@ -44,7 +44,8 @@ class AURA_API UAuraWidgetController : public UObject
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams(const FWidgetControllerParams& Params);//把传进来的结构体解包，分别存进自己的四个成员变量里：
-
+	
+	UFUNCTION(BlueprintCallable)
 	virtual void BroadcastInitialValues();//虚函数，子类可以重写它来广播初始值
 
 	virtual void BindCallbacksToDependencies();//虚函数，子类可以重写它来绑定回调函数到依赖的组件上

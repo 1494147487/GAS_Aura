@@ -57,6 +57,10 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 	{
 		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
 	}
+	else if (bDestroyOnEffectApplication)
+	{
+		Destroy();     // ← 能走到这里，说明 TargetASC 一定有效（前面的守卫已经挡掉了无 ASC 的 Actor）
+	}
 }
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)

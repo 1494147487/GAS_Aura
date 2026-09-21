@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include <GameplayTagContainer.h>
 #include "AuraPlayerController.generated.h"
+
 
 /**
  * 
@@ -14,6 +16,9 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class IEnemyInterface;
+class UAuraInputConfig;
+class UAuraAbilitySystemComponent;
+class USplineComponent;
 
 UCLASS()
 class AURA_API AAuraPlayerController : public APlayerController
@@ -23,28 +28,67 @@ class AURA_API AAuraPlayerController : public APlayerController
 public:
 	AAuraPlayerController();
 
-	virtual void PlayerTick(float DeltaTime)override;//`PlayerTick` ÊÇ **APlayerController** ×Ô´øµÄÖ¡»Øµ÷º¯Êı
+	virtual void PlayerTick(float DeltaTime)override;//`PlayerTick` æ˜¯ **APlayerController** è‡ªå¸¦çš„å¸§å›è°ƒå‡½æ•°
 
 protected:
 	virtual void BeginPlay()override;
-	virtual void SetupInputComponent()override;//`SetupInputComponent()` ÊÇÒıÇæ×Ô¶¯µ÷ÓÃµÄº¯Êı£¬ÓÃÀ´**°ó¶¨°´¼ü?º¯ÊıµÄ»Øµ÷**£»
+	virtual void SetupInputComponent()override;//`SetupInputComponent()` æ˜¯å¼•æ“è‡ªåŠ¨è°ƒç”¨çš„å‡½æ•°ï¼Œç”¨æ¥**ç»‘å®šæŒ‰é”®?å‡½æ•°çš„å›è°ƒ**ï¼›
 
 private:
-	// ¿ÉÔÚ±à¼­Æ÷Ï¸½ÚÃæ°åĞŞ¸Ä£¬¹éÀàµ½"Input"·Ö×é
+	// å¯åœ¨ç¼–è¾‘å™¨ç»†èŠ‚é¢æ¿ä¿®æ”¹ï¼Œå½’ç±»åˆ°"Input"åˆ†ç»„
 	UPROPERTY(EditAnywhere, Category = "Input")
-	// ±£´æ°´¼üÓ³ÉäÅäÖÃ±í×ÊÔ´(W/S/A/D°ó¶¨¸øMoveAction)
+	// ä¿å­˜æŒ‰é”®æ˜ å°„é…ç½®è¡¨èµ„æº(W/S/A/Dç»‘å®šç»™MoveAction)
 	TObjectPtr<UInputMappingContext>AuraContext;
 
-	// ¿ÉÔÚ±à¼­Æ÷Ï¸½ÚÃæ°åĞŞ¸Ä£¬¹éÀàµ½"Input"·Ö×é
+	// å¯åœ¨ç¼–è¾‘å™¨ç»†èŠ‚é¢æ¿ä¿®æ”¹ï¼Œå½’ç±»åˆ°"Input"åˆ†ç»„
 	UPROPERTY(EditAnywhere, Category = "Input")
-	// ±£´æÒÆ¶¯ÊäÈë¶¯×÷×ÊÔ´£¬×¨ÃÅÓÃÀ´´¥·¢ÒÆ¶¯Âß¼­
+	// ä¿å­˜ç§»åŠ¨è¾“å…¥åŠ¨ä½œèµ„æºï¼Œä¸“é—¨ç”¨æ¥è§¦å‘ç§»åŠ¨é€»è¾‘
 	TObjectPtr<UInputAction>MoveAction;
 
-	// ÒÆ¶¯µÄ»Øµ÷º¯Êı£»µ±°´ÏÂ°ó¶¨ºÃWASD°´¼üÊ±ÒıÇæ×Ô¶¯µ÷ÓÃ
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction>ShiftAction;
+
+	bool bShiftkeyDown = false;
+	void ShiftPressed() { bShiftkeyDown = true; }
+	void ShiftReleased() { bShiftkeyDown = false; }
+
+	// ç§»åŠ¨çš„å›è°ƒå‡½æ•°ï¼›å½“æŒ‰ä¸‹ç»‘å®šå¥½WASDæŒ‰é”®æ—¶å¼•æ“è‡ªåŠ¨è°ƒç”¨
 	void Move(const FInputActionValue& InputActionValue);
 
 	void CursorTrace();
 
-	TScriptInterface<IEnemyInterface> LastActor;//`TScriptInterface<IEnemyInterface>`£ºÀàĞÍ£¬Ö»ÄÜ´æ´¢**ÊµÏÖÁË IEnemyInterface ½Ó¿Ú**µÄ¶ÔÏó
-	TScriptInterface<IEnemyInterface> ThisActor;
+	IEnemyInterface* LastActor;//`TScriptInterface<IEnemyInterface>`ï¼šç±»å‹ï¼Œåªèƒ½å­˜å‚¨**å®ç°äº† IEnemyInterface æ¥å£**çš„å¯¹è±¡
+	IEnemyInterface* ThisActor;
+	FHitResult CursorResult;
+
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
+
+
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAuraInputConfig> InputConfig;//åœ¨ueä¸­è®¾ç½®å¥½å¯¹åº”çš„æ•°æ®èµ„äº§
+
+	UPROPERTY()
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComnponent;
+
+	UAuraAbilitySystemComponent* GetASC();
+
+
+	FVector CachedDestination = FVector::ZeroVector;//å…‰æ ‡ç‚¹å‡»çš„ä½ç½®
+
+	float FollowTime = 0.f;
+	float ShortPressThreshold = 0.5f;
+	bool bAutoRunning = false;
+	bool bTargeting = false;
+
+
+	UPROPERTY(EditDefaultsOnly)
+	float AutoRunAcceptanceRadius = 50.f;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USplineComponent> Spline;
+
+	void AutoRun();
 };

@@ -31,11 +31,19 @@ AAuraCharacter::AAuraCharacter()
 
 }
 
+int32 AAuraCharacter::GetPlayerLevel()
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	
+	return AuraPlayerState->GetPlayerLevel();
+}
+
 void AAuraCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController); 
 
 	InitAbilityActorInfo();//
+	AddCharacterAbilities();
 }
 
 void AAuraCharacter::OnRep_PlayerState()
@@ -62,7 +70,7 @@ void AAuraCharacter::InitAbilityActorInfo()//
 
 	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(ASC))
 	{
-		AuraASC->AbilityActorInfoSet();
+		AuraASC->AbilityActorInfoSet();// ASC 就绪后绑定 GE 应用回调，用来广播资源标签
 	}
 
 	AbilitySystemComponent = ASC;
@@ -75,4 +83,6 @@ void AAuraCharacter::InitAbilityActorInfo()//
 			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
 		}
 	}
+
+	InitializeDefaultAttributes();//
 }
