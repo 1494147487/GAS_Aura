@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -13,23 +13,29 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeInfoSignature, const FAuraAttributeInfo&, Info);
 struct FGameplayAttribute;
-
+struct FGameplayTag;
 UCLASS(Blueprintable,Blueprintable)
 class AURA_API UAttributeMenuWidgetController : public UAuraWidgetController
 {
 	GENERATED_BODY()
 
 public:
-	virtual void BroadcastInitialValues()override;//Ğéº¯Êı£¬×ÓÀà¿ÉÒÔÖØĞ´ËüÀ´¹ã²¥³õÊ¼Öµ
+	virtual void BroadcastInitialValues()override;//è™šå‡½æ•°ï¼Œå­ç±»å¯ä»¥é‡å†™å®ƒæ¥å¹¿æ’­åˆå§‹å€¼
 
-	virtual void BindCallbacksToDependencies()override;//Ğéº¯Êı£¬×ÓÀà¿ÉÒÔÖØĞ´ËüÀ´°ó¶¨»Øµ÷º¯Êıµ½ÒÀÀµµÄ×é¼şÉÏ
+	virtual void BindCallbacksToDependencies()override;//è™šå‡½æ•°ï¼Œå­ç±»å¯ä»¥é‡å†™å®ƒæ¥ç»‘å®šå›è°ƒå‡½æ•°åˆ°ä¾èµ–çš„ç»„ä»¶ä¸Š
 
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attributes")
 	FAttributeInfoSignature AttributeInfoDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category = "GAS|Attributes")
+	FOnPlayerStateChangedSignature AttributePointsChangedDelegate;
+
+	UFUNCTION(BlueprintCallable)
+	void UpgradeAttribute(const FGameplayTag& AttributeTag);
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UAttributeInfo> AttributeInfo;//ÔÚ¼Ì³ĞµÄÊôĞÔ²Ëµ¥¿ØÖÆÆ÷À¶Í¼ÀàÀï»áÅäÖÃºÃÕâ¸ö×Ê²úÊı¾İ
+	TObjectPtr<UAttributeInfo> AttributeInfo;//åœ¨ç»§æ‰¿çš„å±æ€§èœå•æ§åˆ¶å™¨è“å›¾ç±»é‡Œä¼šé…ç½®å¥½è¿™ä¸ªèµ„äº§æ•°æ®
 	
 private:
 	

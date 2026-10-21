@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -15,6 +15,8 @@ class AURA_API UAuraGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditDefaultsOnly,Category = "Input")//Õâ¸ö¼¼ÄÜ³öÉúÊ±Ó¦¸Ã°ó¶¨ÄÄ¸öÊäÈë Tag"
+	UPROPERTY(EditDefaultsOnly,Category = "Input")//è¿™ä¸ªæŠ€èƒ½å‡ºç”Ÿæ—¶åº”è¯¥ç»‘å®šå“ªä¸ªè¾“å…¥ Tag"
 	FGameplayTag StartupInputTag;
+	
+	
 };

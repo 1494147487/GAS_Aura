@@ -1,4 +1,4 @@
-
+ï»¿
 
 
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
@@ -6,64 +6,81 @@
 #include "AbilitySystem/Data/AttributeInfo.h"
 #include "AuraGameplayTags.h"
 #include "GameplayEffectTypes.h"
+#include <Player/AuraPlayerState.h>
+#include <AbilitySystem/AuraAbilitySystemComponent.h>
 
 void UAttributeMenuWidgetController::BroadcastInitialValues()
 {
-	// ×ª³É×ÓÀàÒÔ·ÃÎÊ×Ô¶¨ÒåµÄ Getter(Èç GetStrength)
+	// è½¬æˆå­ç±»ä»¥è®¿é—®è‡ªå®šä¹‰çš„ Getter(å¦‚ GetStrength)
 	UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
 
-	// È·±£ÅäÖÃÊı¾İ×Ê²úÒÑ±»¸³Öµ
+	// ç¡®ä¿é…ç½®æ•°æ®èµ„äº§å·²è¢«èµ‹å€¼
 	check(AttributeInfo);
 
-	//// ´Ó DataAsset ÖĞ²é³öÁ¦Á¿ÊôĞÔ¶ÔÓ¦µÄÏÔÊ¾ĞÅÏ¢(Ãû×Ö¡¢ÃèÊöµÈ)
+	//// ä» DataAsset ä¸­æŸ¥å‡ºåŠ›é‡å±æ€§å¯¹åº”çš„æ˜¾ç¤ºä¿¡æ¯(åå­—ã€æè¿°ç­‰)
 	//FAuraAttributeInfo StrengthInfo = AttributeInfo->FindAttributeInfoForTag(FAuraGameplayTags::Get().Attributes_Primary_Strength);
-	//// ²¹ÉÏÊµ¼ÊµÄµ±Ç°ÊıÖµ
+	//// è¡¥ä¸Šå®é™…çš„å½“å‰æ•°å€¼
 	//StrengthInfo.AttributeValue = AS->GetStrength();
-	//// ¹ã²¥¸øËùÓĞ¼àÌıµÄ UI ¿Ø¼ş£¬Í¨ÖªË¢ĞÂÏÔÊ¾
+	//// å¹¿æ’­ç»™æ‰€æœ‰ç›‘å¬çš„ UI æ§ä»¶ï¼Œé€šçŸ¥åˆ·æ–°æ˜¾ç¤º
 	//AttributeInfoDelegate.Broadcast(StrengthInfo);
 
-	// ±éÀú¡¸Tag ¡ú ÊôĞÔ¾ä±ú¡¹±í£¬°ÑÃ¿ÌõÊôĞÔµÄÎÄ°¸ºÍµ±Ç°ÊıÖµ¹ã²¥¸ø²Ëµ¥ UI
+	// éå†ã€ŒTag â†’ å±æ€§å¥æŸ„ã€è¡¨ï¼ŒæŠŠæ¯æ¡å±æ€§çš„æ–‡æ¡ˆå’Œå½“å‰æ•°å€¼å¹¿æ’­ç»™èœå• UI
 	for (auto& Pair : AS->TagsToAttribute)
 	{
-		//// Pair.Key ÊÇ GameplayTag£¬ÓÃÀ´ÔÚ DataAsset Àï²é³öÃû×Ö¡¢ÃèÊö
+		//// Pair.Key æ˜¯ GameplayTagï¼Œç”¨æ¥åœ¨ DataAsset é‡ŒæŸ¥å‡ºåå­—ã€æè¿°
 		//FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(Pair.Key);
-		//// Pair.Value ÊÇ FGameplayAttribute ¾ä±ú£¬µ½Õâ·İ AS ÉÏ¶ÁÈ¡ÊµÊ±ÊıÖµ
+		//// Pair.Value æ˜¯ FGameplayAttribute å¥æŸ„ï¼Œåˆ°è¿™ä»½ AS ä¸Šè¯»å–å®æ—¶æ•°å€¼
 		//Info.AttributeValue = Pair.Value.GetNumericValue(AS);
-		//// °ÑÌîºÃµÄ Info ·¢¸ø¼àÌı AttributeInfoDelegate µÄ¿Ø¼ş£¬Ë¢ĞÂ¶ÔÓ¦ĞĞ
+		//// æŠŠå¡«å¥½çš„ Info å‘ç»™ç›‘å¬ AttributeInfoDelegate çš„æ§ä»¶ï¼Œåˆ·æ–°å¯¹åº”è¡Œ
 		//AttributeInfoDelegate.Broadcast(Info);
 		BroadcastAttributeInfo(Pair.Key, Pair.Value);
 	}
-	
+	AttributePointsChangedDelegate.Broadcast(GetAuraPS()->GetAttributePoints());
 }
 
 void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 {
-	// ½« AttributeSet ×ª»»Îª¾ßÌåÀàĞÍ£¬²ÅÄÜ·ÃÎÊ TagsToAttribute ÕâÕÅÓ³Éä±í
-	UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
+	// å°† AttributeSet è½¬æ¢ä¸ºå…·ä½“ç±»å‹ï¼Œæ‰èƒ½è®¿é—® TagsToAttribute è¿™å¼ æ˜ å°„è¡¨
+	
 	check(AttributeInfo);
 
-	// ±éÀú Tag -> Attribute Ó³Éä±í£¬ÎªÃ¿Ò»¸öÊôĞÔ·Ö±ğ°ó¶¨±ä»¯¼àÌı
-	for (auto& Pair : AS->TagsToAttribute)
+	// éå† Tag -> Attribute æ˜ å°„è¡¨ï¼Œä¸ºæ¯ä¸€ä¸ªå±æ€§åˆ†åˆ«ç»‘å®šå˜åŒ–ç›‘å¬
+	for (auto& Pair : GetAuraAS()->TagsToAttribute)
 	{
-		// ÄÃµ½¸ÃÊôĞÔ×¨ÊôµÄ"ÊıÖµ±ä»¯"Î¯ÍĞ£¬°ó¶¨Ò»¸ö Lambda »Øµ÷
-		// ×¢Òâ£ºPair ±ØĞë°´Öµ²¶»ñ£¬·ñÔòÑ­»·½áÊøºóÒıÓÃĞü¿Õ
+		// æ‹¿åˆ°è¯¥å±æ€§ä¸“å±çš„"æ•°å€¼å˜åŒ–"å§”æ‰˜ï¼Œç»‘å®šä¸€ä¸ª Lambda å›è°ƒ
+		// æ³¨æ„ï¼šPair å¿…é¡»æŒ‰å€¼æ•è·ï¼Œå¦åˆ™å¾ªç¯ç»“æŸåå¼•ç”¨æ‚¬ç©º
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Value).AddLambda(
-			[this, Pair, AS](const FOnAttributeChangeData& Data)
+			[this, Pair](const FOnAttributeChangeData& Data)
 			{
 				BroadcastAttributeInfo(Pair.Key, Pair.Value);
 			}
 		);
 	}
+
+	GetAuraPS()->OnAttributePointsChangedDelegate.AddLambda(
+		[this](int32 Points)
+		{
+			AttributePointsChangedDelegate.Broadcast(Points);
+		}
+
+	);
+
+}
+
+void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	AuraASC->UpgradeAttribute(AttributeTag);
 }
 
 void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayTag& AttributeTag, const FGameplayAttribute& Attribute)
 {
-	// ¸ù¾İ Tag ²é³ö¸ÃÊôĞÔ¶ÔÓ¦µÄ¾²Ì¬Õ¹Ê¾ĞÅÏ¢£¨Ãû×Ö¡¢ÃèÊöµÈ£©
+	// æ ¹æ® Tag æŸ¥å‡ºè¯¥å±æ€§å¯¹åº”çš„é™æ€å±•ç¤ºä¿¡æ¯ï¼ˆåå­—ã€æè¿°ç­‰ï¼‰
 	FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(AttributeTag);
-	// ´Ó AttributeSet ÖĞÈ¡³ö¸ÃÊôĞÔµ±Ç°µÄ×îĞÂÊıÖµ
-	// £¨Ò²¿ÉÒÔÖ±½ÓÓÃ Data.NewValue£¬Ğ§¹ûÏàÍ¬£©
+	// ä» AttributeSet ä¸­å–å‡ºè¯¥å±æ€§å½“å‰çš„æœ€æ–°æ•°å€¼
+	// ï¼ˆä¹Ÿå¯ä»¥ç›´æ¥ç”¨ Data.NewValueï¼Œæ•ˆæœç›¸åŒï¼‰
 	Info.AttributeValue = Attribute.GetNumericValue(AttributeSet);
-	// ¹ã²¥³öÈ¥£¬UI ²ãÊÕµ½ºóË¢ĞÂ¶ÔÓ¦ÏÔÊ¾
+	// å¹¿æ’­å‡ºå»ï¼ŒUI å±‚æ”¶åˆ°ååˆ·æ–°å¯¹åº”æ˜¾ç¤º
 	AttributeInfoDelegate.Broadcast(Info);
 
 }

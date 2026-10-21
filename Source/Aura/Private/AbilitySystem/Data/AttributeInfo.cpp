@@ -1,4 +1,4 @@
-
+ï»¿
 
 
 #include "AbilitySystem/Data/AttributeInfo.h"
@@ -16,7 +16,7 @@ FAuraAttributeInfo UAttributeInfo::FindAttributeInfoForTag(const FGameplayTag& A
 
 	if (bLogNotFound)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ÔÚ AttributeInfo [%s] ÖĞÕÒ²»µ½ AttributeTag [%s] ¶ÔÓ¦µÄÊôĞÔĞÅÏ¢¡£"), *GetNameSafe(this), *AttributeTag.ToString());
+		UE_LOG(LogTemp, Error, TEXT("åœ¨ AttributeInfo [%s] ä¸­æ‰¾ä¸åˆ° AttributeTag [%s] å¯¹åº”çš„å±æ€§ä¿¡æ¯ã€‚"), *GetNameSafe(this), *AttributeTag.ToString());
 	}
 
 	return FAuraAttributeInfo();

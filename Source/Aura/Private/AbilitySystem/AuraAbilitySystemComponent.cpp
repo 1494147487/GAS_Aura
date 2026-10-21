@@ -1,12 +1,15 @@
-
+ï»¿
 
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
+#include "Aura/AuraLogChannels.h"
 #include <AbilitySystem/Abilities/AuraGameplayAbility.h>
+#include <Interaction/PlayerInterface.h>
+#include <AbilitySystemBlueprintLibrary.h>
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
-{	//ÓïÒå:"Ã¿µ±ÓĞÒ»¸ö GameplayEffect ±»Ê©¼Óµ½¡¾Õâ¸ö ASC Ëù´ú±íµÄ Actor¡¿ÉíÉÏÊ±"´¥·¢¡£
+{	//è¯­ä¹‰:"æ¯å½“æœ‰ä¸€ä¸ª GameplayEffect è¢«æ–½åŠ åˆ°ã€è¿™ä¸ª ASC æ‰€ä»£è¡¨çš„ Actorã€‘èº«ä¸Šæ—¶"è§¦å‘ã€‚
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::ClientEffectApplied);//
 	
 	//const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
@@ -19,34 +22,46 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 	//	FString::Printf(TEXT("Tag: %s"), *GameplayTags.Attributes_Secondary_Armor.ToString()));
 }
 
-void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)
+void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)//åœ¨æœåŠ¡å™¨ç«¯è°ƒç”¨ï¼Œç»™è§’è‰²æˆäºˆæŠ€èƒ½
 {
 	for (TSubclassOf<UGameplayAbility> AbilityClass : StartupAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
 		if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability))
-		{//DynamicAbilityTags ÊÇ GAS Ìá¹©µÄÒ»¸ö×¨ÃÅÓÃÀ´ÔÚÔËĞĞÊ±¸ø¼¼ÄÜÊµÀı×·¼Ó±êÇ©µÄÈİÆ÷
-			AbilitySpec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);//°Ñ¼¼ÄÜ×Ô¼ºÅäÖÃºÃµÄ StartupInputTag,Ğ´½øÕâ·İ Spec µÄ"¶¯Ì¬±êÇ©"Àï
+		{//DynamicAbilityTags æ˜¯ GAS æä¾›çš„ä¸€ä¸ªä¸“é—¨ç”¨æ¥åœ¨è¿è¡Œæ—¶ç»™æŠ€èƒ½å®ä¾‹è¿½åŠ æ ‡ç­¾çš„å®¹å™¨
+			AbilitySpec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);//æŠŠæŠ€èƒ½è‡ªå·±é…ç½®å¥½çš„ StartupInputTag,å†™è¿›è¿™ä»½ Spec çš„"åŠ¨æ€æ ‡ç­¾"é‡Œ
 			GiveAbility(AbilitySpec);
 		}
 
 	}
+	bStartupAbilitiesGiven = true;
+	AbilitiesGivenDelegate.Broadcast();//å¹¿æ’­ä¸€ä¸ªäº‹ä»¶,é€šçŸ¥å¤–ç•Œ"æŠ€èƒ½æˆäºˆå®Œæˆ"
+}
+
+void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities)
+{
+	for (TSubclassOf<UGameplayAbility> AbilityClass : StartupPassiveAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
+		GiveAbilityAndActivateOnce(AbilitySpec);
+	}
+
 }
 
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid())return;
-	// ±éÀúÕâ¸ö ASC µ±Ç°ËùÓĞ"¿É¼¤»î"µÄ¼¼ÄÜ
+	// éå†è¿™ä¸ª ASC å½“å‰æ‰€æœ‰"å¯æ¿€æ´»"çš„æŠ€èƒ½
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		// ÕÒµ½¶¯Ì¬ Tag Àï¾«È·Æ¥ÅäÕâ´ÎÊäÈë Tag µÄÄÇ¸ö¼¼ÄÜ(¶ÔÓ¦Ö®Ç°ÊÚÓèÊ±´òÉÏµÄ StartupInputTag)
+		// æ‰¾åˆ°åŠ¨æ€ Tag é‡Œç²¾ç¡®åŒ¹é…è¿™æ¬¡è¾“å…¥ Tag çš„é‚£ä¸ªæŠ€èƒ½(å¯¹åº”ä¹‹å‰æˆäºˆæ—¶æ‰“ä¸Šçš„ StartupInputTag)
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
 			AbilitySpecInputPressed(AbilitySpec);
-			// ±ÜÃâÖØ¸´¼¤»îÒÑ¾­ÔÚÔËĞĞÖĞµÄ¼¼ÄÜ
+			// é¿å…é‡å¤æ¿€æ´»å·²ç»åœ¨è¿è¡Œä¸­çš„æŠ€èƒ½
 			if (!AbilitySpec.IsActive())
 			{
-				// ÕæÕı¼¤»îÕâ¸ö¼¼ÄÜ
+				// çœŸæ­£æ¿€æ´»è¿™ä¸ªæŠ€èƒ½
 				TryActivateAbility(AbilitySpec.Handle);
 			}
 		}
@@ -57,16 +72,95 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid())return;
-	// ±éÀúÕâ¸ö ASC µ±Ç°ËùÓĞ"¿É¼¤»î"µÄ¼¼ÄÜ
+	// éå†è¿™ä¸ª ASC å½“å‰æ‰€æœ‰"å¯æ¿€æ´»"çš„æŠ€èƒ½
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		// ÕÒµ½¶¯Ì¬ Tag Àï¾«È·Æ¥ÅäÕâ´ÎÊäÈë Tag µÄÄÇ¸ö¼¼ÄÜ(¶ÔÓ¦Ö®Ç°ÊÚÓèÊ±´òÉÏµÄ StartupInputTag)
+		// æ‰¾åˆ°åŠ¨æ€ Tag é‡Œç²¾ç¡®åŒ¹é…è¿™æ¬¡è¾“å…¥ Tag çš„é‚£ä¸ªæŠ€èƒ½(å¯¹åº”ä¹‹å‰æˆäºˆæ—¶æ‰“ä¸Šçš„ StartupInputTag)
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
 			AbilitySpecInputReleased(AbilitySpec);
 			
 		}
 	}
+}
+
+void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate)
+{
+	FScopedAbilityListLock ActiveScopeLock(*this);//é”ä½è¿™ä¸ª ASC çš„æŠ€èƒ½åˆ—è¡¨ï¼Œé˜²æ­¢åœ¨éå†è¿‡ç¨‹ä¸­è¢«ä¿®æ”¹
+	for(const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{	//å¦‚æœè¿™ä¸ªå§”æ‰˜æœ‰ç»‘å®šçš„å‡½æ•°ï¼Œå°±æ‰§è¡Œå®ƒï¼Œå¹¶ä¼ å…¥å½“å‰çš„ AbilitySpec ä½œä¸ºå‚æ•°  åœ¨è¦†å±‚æ§åˆ¶å™¨é‡Œçš„ OnInitializeStartupAbilities() é‡Œ,å°±æ˜¯æŠŠæ¯ä¸ªæŠ€èƒ½çš„ Spec ä¼ ç»™äº†è¿™ä¸ª Lambda å‡½æ•°
+		if (!Delegate.ExecuteIfBound(AbilitySpec))
+		{
+			UE_LOG(LogAura, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
+		}
+	}
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)//ä»ä¸€ä¸ªæŠ€èƒ½çš„ Spec é‡Œè·å–å®ƒçš„æ ‡ç­¾
+{
+	if (AbilitySpec.Ability)
+	{
+		for (const FGameplayTag& Tag : AbilitySpec.Ability.Get()->AbilityTags)
+		{
+			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
+			{
+				return Tag;
+			}
+		}
+	}
+
+	return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	for(FGameplayTag Tag : AbilitySpec.DynamicAbilityTags)
+	{
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("InputTag"))))
+		{
+			return Tag;
+		}
+	}
+	return FGameplayTag();
+}
+
+void UAuraAbilitySystemComponent::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+	if (GetAvatarActor()->Implements<UPlayerInterface>())
+	{
+		if (IPlayerInterface::Execute_GetAttributePoints(GetAvatarActor()))
+		{
+			ServerUpgradeAttribute(AttributeTag);
+		}
+	}
+}
+
+void UAuraAbilitySystemComponent::ServerUpgradeAttribute_Implementation(const FGameplayTag& AttributeTag)
+{
+	FGameplayEventData Payload;
+	Payload.EventTag = AttributeTag;
+	Payload.EventMagnitude = 1.f;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetAvatarActor(), AttributeTag, Payload);
+
+	if (GetAvatarActor()->Implements<UPlayerInterface>())
+	{
+		IPlayerInterface::Execute_AddToAttributePoints(GetAvatarActor(),-1);
+	}
+}
+
+
+void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
+{
+	Super::OnRep_ActivateAbilities();
+
+	if (!bStartupAbilitiesGiven)
+	{
+		bStartupAbilitiesGiven = true;
+		AbilitiesGivenDelegate.Broadcast();
+	}
+	
+
 }
 
 void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent,

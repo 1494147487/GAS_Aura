@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -20,5 +20,5 @@ public:
 	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 
 private:
-	FGameplayEffectAttributeCaptureDefinition IntelligenceDef;//// ¶¨ÒåÈçºÎ²¶»ñ Vigor ÊôĞÔ£¨À´Ô´¡¢¿ìÕÕÓë·ñ£©£¬¹©¼ÆËãÊ±È¡ÖµÊ¹ÓÃ
+	FGameplayEffectAttributeCaptureDefinition IntelligenceDef;//// å®šä¹‰å¦‚ä½•æ•è· Vigor å±æ€§ï¼ˆæ¥æºã€å¿«ç…§ä¸å¦ï¼‰ï¼Œä¾›è®¡ç®—æ—¶å–å€¼ä½¿ç”¨
 };

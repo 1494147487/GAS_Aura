@@ -1,20 +1,21 @@
-
+ï»¿
 
 
 #include "AbilitySystem/AbilityTasks/TargetDataUnderMouse.h"
 #include "AbilitySystemComponent.h"
 
 
-// µ÷ÓÃ NewAbilityTask Ä£°åº¯Êı´´½¨Ò»¸ö Task ÊµÀı²¢·µ»Ø
+// è°ƒç”¨ NewAbilityTask æ¨¡æ¿å‡½æ•°åˆ›å»ºä¸€ä¸ª Task å®ä¾‹å¹¶è¿”å›
 UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility)
 {
 	UTargetDataUnderMouse* MyObj = NewAbilityTask<UTargetDataUnderMouse>(OwningAbility);//
 
 	return MyObj;
 }
-//¡ú µ÷ÓÃÄãµÄ¾²Ì¬¹¤³§º¯Êı CreateTargetDataUnderMouse() ÄÃµ½ Task ¶ÔÏó
-//¡ú ±àÒëÆ÷×Ô¶¯Éú³ÉµÄ½ºË®´úÂë½Ó×Åµ÷ÓÃ MyObj->ReadyForActivation()
-//¡ú ReadyForActivation() ÄÚ²¿ÔÙµ÷ÓÃÄãÖØĞ´µÄ Activate()
+
+//â†’ è°ƒç”¨ä½ çš„é™æ€å·¥å‚å‡½æ•° CreateTargetDataUnderMouse() æ‹¿åˆ° Task å¯¹è±¡
+//â†’ ç¼–è¯‘å™¨è‡ªåŠ¨ç”Ÿæˆçš„èƒ¶æ°´ä»£ç æ¥ç€è°ƒç”¨ MyObj->ReadyForActivation()
+//â†’ ReadyForActivation() å†…éƒ¨å†è°ƒç”¨ä½ é‡å†™çš„ Activate()
 void UTargetDataUnderMouse::Activate()
 {
 
@@ -25,14 +26,14 @@ void UTargetDataUnderMouse::Activate()
 	}
 	else
 	{
-		FGameplayAbilitySpecHandle SpecHandle = GetAbilitySpecHandle();//ÕâÊÇÄÄ¸ö¼¼ÄÜ
-		FPredictionKey ActivationPredictionKey = GetActivationPredictionKey();//Õâ¸ö¼¼ÄÜµÚ¼¸´ÎÊÍ·Å
+		FGameplayAbilitySpecHandle SpecHandle = GetAbilitySpecHandle();//è¿™æ˜¯å“ªä¸ªæŠ€èƒ½
+		FPredictionKey ActivationPredictionKey = GetActivationPredictionKey();//è¿™ä¸ªæŠ€èƒ½ç¬¬å‡ æ¬¡é‡Šæ”¾
 
 		AbilitySystemComponent.Get()->AbilityTargetDataSetDelegate(SpecHandle, ActivationPredictionKey).AddUObject(
-			this, //// Õû¾ä»°:ÕÒµ½/´´½¨Õâ¸ö¼¼ÄÜÕâ´ÎÊÍ·Å×¨ÊôµÄÎ¯ÍĞ,°Ñ OnTargetDataReplicatedCallback ¹ÒÉÏÈ¥,
+			this, //// æ•´å¥è¯:æ‰¾åˆ°/åˆ›å»ºè¿™ä¸ªæŠ€èƒ½è¿™æ¬¡é‡Šæ”¾ä¸“å±çš„å§”æ‰˜,æŠŠ OnTargetDataReplicatedCallback æŒ‚ä¸Šå»,
 			&UTargetDataUnderMouse::OnTargetDataReplicatedCallback);
 
-		//:¼ì²é"¿Í»§¶ËµÄÊı¾İÊÇ²»ÊÇÒÑ¾­ÏÈµ½´ïÁË   Èç¹ûÊı¾İÒÑ¾­ÔÚÁË,Õâ¸öº¯ÊıÄÚ²¿»áÁ¢¿Ì´¥·¢¸Õ°ó¶¨ºÃµÄÎ¯ÍĞ
+		//:æ£€æŸ¥"å®¢æˆ·ç«¯çš„æ•°æ®æ˜¯ä¸æ˜¯å·²ç»å…ˆåˆ°è¾¾äº†   å¦‚æœæ•°æ®å·²ç»åœ¨äº†,è¿™ä¸ªå‡½æ•°å†…éƒ¨ä¼šç«‹åˆ»è§¦å‘åˆšç»‘å®šå¥½çš„å§”æ‰˜
 		const bool bCalledDelegate = AbilitySystemComponent.Get()->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, ActivationPredictionKey);
 		if (!bCalledDelegate)
 		{
@@ -45,26 +46,26 @@ void UTargetDataUnderMouse::Activate()
 
 void UTargetDataUnderMouse::SendMouseCursorData()
 {
-	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get());//:ÔÚÕâ¸ö±äÁ¿´æÔÚµÄÉúÃüÖÜÆÚÄÚ,ÁÙÊ±´ò¿ªÒ»¸ö"Ô¤²â´°¿Ú",¸æËßÏµÍ³"½ÓÏÂÀ´·¢ÉúµÄÕâĞ©²Ù×÷,ÊÇÊôÓÚ¿Í»§¶ËÔ¤²âµÄÒ»²¿·Ö"¡£
+	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get());//:åœ¨è¿™ä¸ªå˜é‡å­˜åœ¨çš„ç”Ÿå‘½å‘¨æœŸå†…,ä¸´æ—¶æ‰“å¼€ä¸€ä¸ª"é¢„æµ‹çª—å£",å‘Šè¯‰ç³»ç»Ÿ"æ¥ä¸‹æ¥å‘ç”Ÿçš„è¿™äº›æ“ä½œ,æ˜¯å±äºå®¢æˆ·ç«¯é¢„æµ‹çš„ä¸€éƒ¨åˆ†"ã€‚
 
 	APlayerController* PC = Ability->GetCurrentActorInfo()->PlayerController.Get();
 	FHitResult  CursorResult;
-	PC->GetHitResultUnderCursor(ECC_Visibility, false, CursorResult);
+	PC->GetHitResultUnderCursor(ECC_Visibility, false, CursorResult);//
 
 	//ValidData.Broadcast(CursorResult.Location);
-	FGameplayAbilityTargetDataHandle DataHandle;  // ÉùÃ÷Ò»¸ö¿ÕµÄÄ¿±êÊı¾İ¾ä±ú,ÓÃÀ´×°ºóÃæ¹¹Ôì³öµÄ¾ßÌåÄ¿±êÊı¾İ
-	FGameplayAbilityTargetData_SingleTargetHit* Data = new FGameplayAbilityTargetData_SingleTargetHit();  // ÔÚ¶ÑÉÏ new Ò»¸ö"µ¥ÌåÃüÖĞ"ÀàĞÍµÄÄ¿±êÊı¾İ,ËùÓĞÈ¨ºóÃæ»á½»¸ø Handle ÍĞ¹Ü
-	Data->HitResult = CursorResult;  // °ÑÖ®Ç°ÉäÏß¼ì²âµÃµ½µÄÃüÖĞ½á¹û´æ½øÕâ·İÄ¿±êÊı¾İÀï
-	DataHandle.Add(Data);  // °ÑÕâ·İÊı¾İÈû½ø Handle ÈİÆ÷(ÄÚ²¿ÓÃÖÇÄÜÖ¸ÕëÍĞ¹ÜÉúÃüÖÜÆÚ,¿ÉÒÔ×°¶à·İ)
+	FGameplayAbilityTargetDataHandle DataHandle;  // å£°æ˜ä¸€ä¸ªç©ºçš„ç›®æ ‡æ•°æ®å¥æŸ„,ç”¨æ¥è£…åé¢æ„é€ å‡ºçš„å…·ä½“ç›®æ ‡æ•°æ®
+	FGameplayAbilityTargetData_SingleTargetHit* Data = new FGameplayAbilityTargetData_SingleTargetHit();  // åœ¨å †ä¸Š new ä¸€ä¸ª"å•ä½“å‘½ä¸­"ç±»å‹çš„ç›®æ ‡æ•°æ®,æ‰€æœ‰æƒåé¢ä¼šäº¤ç»™ Handle æ‰˜ç®¡
+	Data->HitResult = CursorResult;  // æŠŠä¹‹å‰å°„çº¿æ£€æµ‹å¾—åˆ°çš„å‘½ä¸­ç»“æœå­˜è¿›è¿™ä»½ç›®æ ‡æ•°æ®é‡Œ
+	DataHandle.Add(Data);  // æŠŠè¿™ä»½æ•°æ®å¡è¿› Handle å®¹å™¨(å†…éƒ¨ç”¨æ™ºèƒ½æŒ‡é’ˆæ‰˜ç®¡ç”Ÿå‘½å‘¨æœŸ,å¯ä»¥è£…å¤šä»½)
 
 
-	AbilitySystemComponent->ServerSetReplicatedTargetData(//¿Í»§¶Ëµ÷ÓÃÕâ¸öº¯Êı,°ÑÄ¿±êÊı¾İ·¢¸ø·şÎñÆ÷
-		GetAbilitySpecHandle(),                       // ±êÊ¶Õâ·İÊı¾İÊôÓÚÄÄ¸ö¼¼ÄÜÊµÀı,·şÎñÆ÷¿¿ËüÕÒµ½¶ÔÓ¦¼¼ÄÜ´¦Àí  GetAbilitySpecHandle() ¾ÍÊÇ´Óµ±Ç°ÕıÔÚÖ´ĞĞµÄÕâ¸ö UGameplayAbility ÊµÀıÉÏ,È¡³öËü×Ô¼º
-		GetActivationPredictionKey(),                 // Õâ´Î¼¼ÄÜ¼¤»î¶ÔÓ¦µÄÔ¤²â¼ü,ÓÃÓÚ¿Í»§¶ËÔ¤²âÏµÍ³¹ØÁª±¾´Îµ÷ÓÃ  "ÕâÊÇµÚ¼¸´ÎÊÍ·Å"
-		DataHandle,                                    // ÕæÕıÒª·¢ËÍµÄÄ¿±êÊı¾İ±¾Ìå  Handle¼æÈİ
-		FGameplayTag(),                                // Ó¦ÓÃ±êÇ©,ÕâÀï´«¿Õ±íÊ¾²»ĞèÒª
-		AbilitySystemComponent->ScopedPredictionKey    // ¡û ÕâÀïÓÃµ½µÄ¾ÍÊÇ ScopedPrediction ¹¹ÔìÊ±ÉèÖÃºÃµÄÕâ¸ö¼ü
-	);  // µ÷ÓÃ Server RPC,°Ñ´ò°üºÃµÄÄ¿±êÊı¾İÕûÌå·¢ËÍ¸ø·şÎñÆ÷
+	AbilitySystemComponent->ServerSetReplicatedTargetData(//å®¢æˆ·ç«¯è°ƒç”¨è¿™ä¸ªå‡½æ•°,æŠŠç›®æ ‡æ•°æ®å‘ç»™æœåŠ¡å™¨
+		GetAbilitySpecHandle(),                       // æ ‡è¯†è¿™ä»½æ•°æ®å±äºå“ªä¸ªæŠ€èƒ½å®ä¾‹,æœåŠ¡å™¨é å®ƒæ‰¾åˆ°å¯¹åº”æŠ€èƒ½å¤„ç†  GetAbilitySpecHandle() å°±æ˜¯ä»å½“å‰æ­£åœ¨æ‰§è¡Œçš„è¿™ä¸ª UGameplayAbility å®ä¾‹ä¸Š,å–å‡ºå®ƒè‡ªå·±
+		GetActivationPredictionKey(),                 // è¿™æ¬¡æŠ€èƒ½æ¿€æ´»å¯¹åº”çš„é¢„æµ‹é”®,ç”¨äºå®¢æˆ·ç«¯é¢„æµ‹ç³»ç»Ÿå…³è”æœ¬æ¬¡è°ƒç”¨  "è¿™æ˜¯ç¬¬å‡ æ¬¡é‡Šæ”¾"
+		DataHandle,                                    // çœŸæ­£è¦å‘é€çš„ç›®æ ‡æ•°æ®æœ¬ä½“  Handleå…¼å®¹
+		FGameplayTag(),                                // åº”ç”¨æ ‡ç­¾,è¿™é‡Œä¼ ç©ºè¡¨ç¤ºä¸éœ€è¦
+		AbilitySystemComponent->ScopedPredictionKey    // â† è¿™é‡Œç”¨åˆ°çš„å°±æ˜¯ ScopedPrediction æ„é€ æ—¶è®¾ç½®å¥½çš„è¿™ä¸ªé”®
+	);  // è°ƒç”¨ Server RPC,æŠŠæ‰“åŒ…å¥½çš„ç›®æ ‡æ•°æ®æ•´ä½“å‘é€ç»™æœåŠ¡å™¨
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -75,9 +76,9 @@ void UTargetDataUnderMouse::SendMouseCursorData()
 
 void UTargetDataUnderMouse::OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
-	//¸æËß ASC"Õâ·İÊı¾İÎÒÒÑ¾­ÓÃ¹ıÁË,¿ÉÒÔ´ÓÄÚ²¿»º´æÀïÇåµôÁË
+	//å‘Šè¯‰ ASC"è¿™ä»½æ•°æ®æˆ‘å·²ç»ç”¨è¿‡äº†,å¯ä»¥ä»å†…éƒ¨ç¼“å­˜é‡Œæ¸…æ‰äº†
 	AbilitySystemComponent->ConsumeClientReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey());
-	if (ShouldBroadcastAbilityTaskDelegates())//ÊÇ»ùÀàÌá¹©µÄÒ»¸ö°²È«¼ì²é(±ÈÈçÈ·ÈÏ Ability »¹Ã»±»È¡Ïû/½áÊø,±ÜÃâ¶Ô×ÅÒ»¸öÒÑ¾­Ê§Ğ§µÄ Ability ¹ã²¥)
+	if (ShouldBroadcastAbilityTaskDelegates())//æ˜¯åŸºç±»æä¾›çš„ä¸€ä¸ªå®‰å…¨æ£€æŸ¥(æ¯”å¦‚ç¡®è®¤ Ability è¿˜æ²¡è¢«å–æ¶ˆ/ç»“æŸ,é¿å…å¯¹ç€ä¸€ä¸ªå·²ç»å¤±æ•ˆçš„ Ability å¹¿æ’­)
 	{
 		ValidData.Broadcast(DataHandle);
 	}

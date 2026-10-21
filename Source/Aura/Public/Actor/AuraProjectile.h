@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -24,7 +24,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
+	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))//è®©è“å›¾èƒ½è¯»å†™å®ƒï¼Œå¹¶ä¸”åœ¨è“å›¾é‡Œç”Ÿæˆè¿™ä¸ª Actor æ—¶ï¼ŒèŠ‚ç‚¹ä¸Šä¼šå¤šå‡ºä¸€ä¸ªå¼•è„šè®©ä½ ç›´æ¥ä¼ å…¥è¿™ä¸ªå€¼
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
 
@@ -34,13 +34,13 @@ protected:
 	virtual void Destroyed() override;
 
 	/**
- * ÇòÌåÅö×²×é¼şÖØµş¿ªÊ¼»Øµ÷
- * @param OverlappedComponent    ´¥·¢ÖØµşµÄ×é¼ş£¬Ò²¾ÍÊÇÍ¶ÉäÎï×ÔÉíµÄSphereCollisionÇòÌåÅö×²×é¼ş
- * @param OtherActor             ºÍ±¾Í¶ÉäÎï·¢ÉúÖØµşµÄÍâ²¿Actor¶ÔÏó
- * @param OtherComp              OtherActorÉíÉÏ£¬Êµ¼Ê²úÉúÖØµşµÄÄÇ¸öÅö×²×é¼ş
- * @param OtherBodyIndex         Åö×²Ä¿±êµÄBodyË÷Òı£»Í¬Ò»¸öActorÓĞ¶à¸öÅö×²ÌåÊ±£¬ÓÃÀ´Çø·ÖÊÇÄÄÒ»¸öÅö×²Ìå·¢ÉúÖØµş
- * @param bFromSweep             ÊÇ·ñÓÉÒÆ¶¯É¨¼ì²â²úÉúµÄÖØµş£»Í¶ÉäÎï·ÉĞĞÅö×²¸ÃÖµÒ»°ãÎªtrue£¬¾²Ì¬Ïà½»Îªfalse
- * @param SweepResult            Åö×²É¨²é½á¹û½á¹¹Ìå£¬±£´æÅö×²µã×ø±ê¡¢Åö×²·¨Ïß¡¢Åö×²ÎïÌåµÈÏêÏ¸Åö×²ĞÅÏ¢
+ * çƒä½“ç¢°æ’ç»„ä»¶é‡å å¼€å§‹å›è°ƒ
+ * @param OverlappedComponent    è§¦å‘é‡å çš„ç»„ä»¶ï¼Œä¹Ÿå°±æ˜¯æŠ•å°„ç‰©è‡ªèº«çš„SphereCollisionçƒä½“ç¢°æ’ç»„ä»¶
+ * @param OtherActor             å’Œæœ¬æŠ•å°„ç‰©å‘ç”Ÿé‡å çš„å¤–éƒ¨Actorå¯¹è±¡
+ * @param OtherComp              OtherActorèº«ä¸Šï¼Œå®é™…äº§ç”Ÿé‡å çš„é‚£ä¸ªç¢°æ’ç»„ä»¶
+ * @param OtherBodyIndex         ç¢°æ’ç›®æ ‡çš„Bodyç´¢å¼•ï¼›åŒä¸€ä¸ªActoræœ‰å¤šä¸ªç¢°æ’ä½“æ—¶ï¼Œç”¨æ¥åŒºåˆ†æ˜¯å“ªä¸€ä¸ªç¢°æ’ä½“å‘ç”Ÿé‡å 
+ * @param bFromSweep             æ˜¯å¦ç”±ç§»åŠ¨æ‰«æ£€æµ‹äº§ç”Ÿçš„é‡å ï¼›æŠ•å°„ç‰©é£è¡Œç¢°æ’è¯¥å€¼ä¸€èˆ¬ä¸ºtrueï¼Œé™æ€ç›¸äº¤ä¸ºfalse
+ * @param SweepResult            ç¢°æ’æ‰«æŸ¥ç»“æœç»“æ„ä½“ï¼Œä¿å­˜ç¢°æ’ç‚¹åæ ‡ã€ç¢°æ’æ³•çº¿ã€ç¢°æ’ç‰©ä½“ç­‰è¯¦ç»†ç¢°æ’ä¿¡æ¯
  */
 	UFUNCTION()
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
@@ -48,13 +48,14 @@ protected:
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USphereComponent> Sphere;
+
 private:
 	bool bHit = false;
 	UPROPERTY(EditDefaultsOnly)
 	float LifeSpan = 15.f;
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USphereComponent> Sphere;
 
 	UPROPERTY(EditAnyWhere)
 	TObjectPtr<UNiagaraSystem> ImpactEffect;

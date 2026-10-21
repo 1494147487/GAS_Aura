@@ -1,60 +1,88 @@
-
+ï»¿
 
 
 #include "AbilitySystem/Abilities/AuraProjectSpell.h"
 #include "Actor/AuraProjectile.h"  
 #include "Interaction/CombatInterface.h"
 #include <AbilitySystemBlueprintLibrary.h>
+#include "AuraGameplayTags.h"
 #include "AbilitySystemComponent.h" 
 
 void UAuraProjectSpell::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle,               // Õâ¸ö¼¼ÄÜÊµÀıÔÚ ASC ÀïµÄÎ¨Ò»±êÊ¶¾ä±ú£¬ÓÃÓÚ¶¨Î»¶ÔÓ¦µÄ AbilitySpec
-	const FGameplayAbilityActorInfo* ActorInfo,            // ´ò°üÁËÓµÓĞÕß/±íÏÖActor/ASCµÈ³£ÓÃÖ¸ÕëµÄÉÏÏÂÎÄĞÅÏ¢
-	const FGameplayAbilityActivationInfo ActivationInfo,   // ±¾´Î¼¤»îµÄÍøÂçÉí·İĞÅÏ¢£¨Ô¤²â/·şÎñÆ÷È¨ÍşµÈ£©
-	const FGameplayEventData* TriggerEventData             // ÈôÓÉÊÂ¼ş´¥·¢£¬Ğ¯´ø´¥·¢Êı¾İ£»·ÇÊÂ¼ş´¥·¢Ê±Îª nullptr
+	const FGameplayAbilitySpecHandle Handle,               // è¿™ä¸ªæŠ€èƒ½å®ä¾‹åœ¨ ASC é‡Œçš„å”¯ä¸€æ ‡è¯†å¥æŸ„ï¼Œç”¨äºå®šä½å¯¹åº”çš„ AbilitySpec
+	const FGameplayAbilityActorInfo* ActorInfo,            // æ‰“åŒ…äº†æ‹¥æœ‰è€…/è¡¨ç°Actor/ASCç­‰å¸¸ç”¨æŒ‡é’ˆçš„ä¸Šä¸‹æ–‡ä¿¡æ¯
+	const FGameplayAbilityActivationInfo ActivationInfo,   // æœ¬æ¬¡æ¿€æ´»çš„ç½‘ç»œèº«ä»½ä¿¡æ¯ï¼ˆé¢„æµ‹/æœåŠ¡å™¨æƒå¨ç­‰ï¼‰
+	const FGameplayEventData* TriggerEventData             // è‹¥ç”±äº‹ä»¶è§¦å‘ï¼Œæºå¸¦è§¦å‘æ•°æ®ï¼›éäº‹ä»¶è§¦å‘æ—¶ä¸º nullptr
 )
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
 	
-
-	
-
 }
 
-void UAuraProjectSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
+void UAuraProjectSpell::SpawnProjectile(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag, bool bOverridePitch,float PitchOverride)
 {
-	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();   // ÅĞ¶Ïµ±Ç°Ö´ĞĞ»·¾³ÊÇ·ñÎª·şÎñÆ÷£¨È¨Íş¶Ë£©
-	if (!bIsServer) return;													// GAS µÄ¼¼ÄÜÉú³ÉÍ¶ÉäÎïÊôÓÚÓĞÍøÂçÈ¨ÍşĞÔµÄ²Ù×÷£¬¿Í»§¶ËÔ¤²â½×¶ÎÖ±½ÓÌø¹ı£¬Ö»ÓÉ·şÎñÆ÷ÕæÕıÉú³É Actor
+	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();   // åˆ¤æ–­å½“å‰æ‰§è¡Œç¯å¢ƒæ˜¯å¦ä¸ºæœåŠ¡å™¨ï¼ˆæƒå¨ç«¯ï¼‰
+	if (!bIsServer) return;													// GAS çš„æŠ€èƒ½ç”ŸæˆæŠ•å°„ç‰©å±äºæœ‰ç½‘ç»œæƒå¨æ€§çš„æ“ä½œï¼Œå®¢æˆ·ç«¯é¢„æµ‹é˜¶æ®µç›´æ¥è·³è¿‡ï¼Œåªç”±æœåŠ¡å™¨çœŸæ­£ç”Ÿæˆ Actor
 
 
 	ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());
 
 	if (CombatInterface)
 	{
-		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
+		const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), SocketTag);
+		//const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
 
 		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
-		Rotation.Pitch = 0.f;
+		//Rotation.Pitch = 0.f;
+		if(bOverridePitch)
+		{
+			Rotation.Pitch = PitchOverride;
+		}
 
-		FTransform SpawnTransform;  // Éú³É±ä»»£¨Î»ÖÃ¡¢Ğı×ª¡¢Ëõ·Å£©£¬Ä¿Ç°ÊÇÄ¬ÈÏ¹¹Ôì£¬¼´È«Áã/µ¥Î»±ä»»£¬»¹Ã»ÓĞ¸³Öµ¡ª¡ªÕâÀïÍ¨³£ĞèÒªÓÃ½ÇÉ«µÄÇ¹¿Ú/³¯ÏòÀ´Ìî³ä£¬·ñÔòÍ¶ÉäÎï»áÉú³ÉÔÚÊÀ½çÔ­µã
+
+		FTransform SpawnTransform;  // ç”Ÿæˆå˜æ¢ï¼ˆä½ç½®ã€æ—‹è½¬ã€ç¼©æ”¾ï¼‰ï¼Œç›®å‰æ˜¯é»˜è®¤æ„é€ ï¼Œå³å…¨é›¶/å•ä½å˜æ¢ï¼Œè¿˜æ²¡æœ‰èµ‹å€¼â€”â€”è¿™é‡Œé€šå¸¸éœ€è¦ç”¨è§’è‰²çš„æªå£/æœå‘æ¥å¡«å……ï¼Œå¦åˆ™æŠ•å°„ç‰©ä¼šç”Ÿæˆåœ¨ä¸–ç•ŒåŸç‚¹
 		SpawnTransform.SetLocation(SocketLocation);
 		SpawnTransform.SetRotation(Rotation.Quaternion());
-		//TODO ÉèÖÃÍ¶ÉäÎïµÄĞı×ª
+		//TODO è®¾ç½®æŠ•å°„ç‰©çš„æ—‹è½¬
 
-		//(ÑÓ³ÙÉú³É)²»»áÖ´ĞĞ OnConstruction,²»»á×¢²á×é¼ş,²»»áµ÷ÓÃ BeginPlay
+		//(å»¶è¿Ÿç”Ÿæˆ)ä¸ä¼šæ‰§è¡Œ OnConstruction,ä¸ä¼šæ³¨å†Œç»„ä»¶,ä¸ä¼šè°ƒç”¨ BeginPlay
 		AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(
-			ProjectileClass,                                      // ÒªÉú³ÉµÄÍ¶ÉäÎïÀà£¨À¶Í¼»ò C++ Àà£©£¬À´×Ô±¾ GameplayAbility µÄÊôĞÔ
-			SpawnTransform,                                        // Éú³ÉÎ»ÖÃ/³¯Ïò
-			GetOwningActorFromActorInfo(),                         // Owner£º¼¼ÄÜÓµÓĞÕß£¨Ò»°ãÊÇ PlayerState »ò½ÇÉ«±¾Éí£©£¬¹©Í¶ÉäÎïÄÚ²¿Âß¼­·ÃÎÊÊ©·¨ÕßĞÅÏ¢
-			Cast<APawn>(GetAvatarActorFromActorInfo()),            // Instigator£ºÔì³É´Ë´ÎÉú³ÉµÄ Pawn£¬³£ÓÃÓÚÉËº¦¹éÒò£¨ÈçÅĞ¶Ï»÷É±Õß£©
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn        // Åö×²´¦Àí²ßÂÔ£º¼´Ê¹Éú³ÉÎ»ÖÃÓëÆäËûÎïÌåÖØµş£¬Ò²Ç¿ÖÆÉú³É£¬²»×öÎ»ÖÃµ÷Õû»òÈ¡Ïû
+			ProjectileClass,                                      // è¦ç”Ÿæˆçš„æŠ•å°„ç‰©ç±»ï¼ˆè“å›¾æˆ– C++ ç±»ï¼‰ï¼Œæ¥è‡ªæœ¬ GameplayAbility çš„å±æ€§
+			SpawnTransform,                                        // ç”Ÿæˆä½ç½®/æœå‘
+			GetOwningActorFromActorInfo(),                         // Ownerï¼šæŠ€èƒ½æ‹¥æœ‰è€…ï¼ˆä¸€èˆ¬æ˜¯ PlayerState æˆ–è§’è‰²æœ¬èº«ï¼‰ï¼Œä¾›æŠ•å°„ç‰©å†…éƒ¨é€»è¾‘è®¿é—®æ–½æ³•è€…ä¿¡æ¯
+			Cast<APawn>(GetAvatarActorFromActorInfo()),            // Instigatorï¼šé€ æˆæ­¤æ¬¡ç”Ÿæˆçš„ Pawnï¼Œå¸¸ç”¨äºä¼¤å®³å½’å› ï¼ˆå¦‚åˆ¤æ–­å‡»æ€è€…ï¼‰
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn        // ç¢°æ’å¤„ç†ç­–ç•¥ï¼šå³ä½¿ç”Ÿæˆä½ç½®ä¸å…¶ä»–ç‰©ä½“é‡å ï¼Œä¹Ÿå¼ºåˆ¶ç”Ÿæˆï¼Œä¸åšä½ç½®è°ƒæ•´æˆ–å–æ¶ˆ
 		);
 
-		//´ú°ìÊÂÏî ...
-		//1.¸øÓèÍ¶ÉäÎïÒ»¸öÔì³ÉÉËº¦µÄĞ§¹û¹æ¸ñ
-		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-		FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+		//ä»£åŠäº‹é¡¹ ...
+		//1.ç»™äºˆæŠ•å°„ç‰©ä¸€ä¸ªé€ æˆä¼¤å®³çš„æ•ˆæœè§„æ ¼
+		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+
+		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+		EffectContextHandle.SetAbility(this);
+		EffectContextHandle.AddSourceObject(Projectile);  
+		TArray<TWeakObjectPtr<AActor>> Actors;
+		Actors.Add(Projectile);
+		EffectContextHandle.AddActors(Actors);
+		FHitResult HitResult;
+		HitResult.Location = ProjectileTargetLocation;
+		EffectContextHandle.AddHitResult(HitResult);
+
+		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
+		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+
+		//const float ScaledDamage = Damage.GetValueAtLevel(20);
+		for (auto& Pair : DamageTypes)
+		{
+			const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage);//
+		}
+		
+
+		//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("FireBolt Damage: %f"), ScaledDamage));
+	
+		
 		Projectile->DamageEffectSpecHandle = SpecHandle;
 
 		Projectile->FinishSpawning(SpawnTransform);

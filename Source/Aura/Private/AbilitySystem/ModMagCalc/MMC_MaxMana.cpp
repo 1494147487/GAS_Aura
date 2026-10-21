@@ -1,4 +1,4 @@
-
+ï»¿
 
 
 #include "AbilitySystem/ModMagCalc/MMC_MaxMana.h"
@@ -7,28 +7,32 @@
 
 UMMC_MaxMana::UMMC_MaxMana()
 {
-	IntelligenceDef.AttributeToCapture = UAuraAttributeSet::GetIntelligenceAttribute(); // Ö¸¶¨Òª²¶»ñµÄÊôĞÔÖÖÀàÎª Intelligence
-	IntelligenceDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target; // Ö¸¶¨´ÓÄ¿±ê£¨³ĞÊÜĞ§¹ûµÄÒ»·½£©ÉíÉÏÈ¡Öµ
-	IntelligenceDef.bSnapshot = false; // ²»Ê¹ÓÃ¿ìÕÕ£¬Ã¿´Î¼ÆËã¶¼È¡µ±Ç°×îĞÂµÄÊµÊ±ÊıÖµ
+	IntelligenceDef.AttributeToCapture = UAuraAttributeSet::GetIntelligenceAttribute(); // æŒ‡å®šè¦æ•è·çš„å±æ€§ç§ç±»ä¸º Intelligence
+	IntelligenceDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target; // æŒ‡å®šä»ç›®æ ‡ï¼ˆæ‰¿å—æ•ˆæœçš„ä¸€æ–¹ï¼‰èº«ä¸Šå–å€¼
+	IntelligenceDef.bSnapshot = false; // ä¸ä½¿ç”¨å¿«ç…§ï¼Œæ¯æ¬¡è®¡ç®—éƒ½å–å½“å‰æœ€æ–°çš„å®æ—¶æ•°å€¼
 
-	RelevantAttributesToCapture.Add(IntelligenceDef);// °Ñ VigorDef ¼ÓÈë±¾´Î¼ÆËãËùĞè²¶»ñµÄÊôĞÔÁĞ±í
+	RelevantAttributesToCapture.Add(IntelligenceDef);// æŠŠ VigorDef åŠ å…¥æœ¬æ¬¡è®¡ç®—æ‰€éœ€æ•è·çš„å±æ€§åˆ—è¡¨
 }
 
 float UMMC_MaxMana::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
 {
-	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags(); // »ñÈ¡·¢ÆğÕß£¨Source£©ÉíÉÏ¾ÛºÏµÄ GameplayTag ÈİÆ÷
-	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags(); // »ñÈ¡³ĞÊÜÕß£¨Target£©ÉíÉÏ¾ÛºÏµÄ GameplayTag ÈİÆ÷
+	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags(); // è·å–å‘èµ·è€…ï¼ˆSourceï¼‰èº«ä¸Šèšåˆçš„ GameplayTag å®¹å™¨
+	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags(); // è·å–æ‰¿å—è€…ï¼ˆTargetï¼‰èº«ä¸Šèšåˆçš„ GameplayTag å®¹å™¨
 
-	FAggregatorEvaluateParameters EvaluationParameters; // ´´½¨Ò»¸ö"¼ÆËãÇóÖµ²ÎÊı"½á¹¹Ìå£¬ÓÃÓÚ´«¸ø²¶»ñÈ¡Öµº¯Êı
-	EvaluationParameters.SourceTags = SourceTags; // °Ñ Source µÄ±êÇ©Èû½øÇóÖµ²ÎÊı£¬¹©Ìõ¼şÅĞ¶Ï/¼Ó³É¼ÆËãÊ¹ÓÃ
-	EvaluationParameters.TargetTags = TargetTags; // °Ñ Target µÄ±êÇ©Èû½øÇóÖµ²ÎÊı£¬¹©Ìõ¼şÅĞ¶Ï/¼Ó³É¼ÆËãÊ¹ÓÃ
+	FAggregatorEvaluateParameters EvaluationParameters; // åˆ›å»ºä¸€ä¸ª"è®¡ç®—æ±‚å€¼å‚æ•°"ç»“æ„ä½“ï¼Œç”¨äºä¼ ç»™æ•è·å–å€¼å‡½æ•°
+	EvaluationParameters.SourceTags = SourceTags; // æŠŠ Source çš„æ ‡ç­¾å¡è¿›æ±‚å€¼å‚æ•°ï¼Œä¾›æ¡ä»¶åˆ¤æ–­/åŠ æˆè®¡ç®—ä½¿ç”¨
+	EvaluationParameters.TargetTags = TargetTags; // æŠŠ Target çš„æ ‡ç­¾å¡è¿›æ±‚å€¼å‚æ•°ï¼Œä¾›æ¡ä»¶åˆ¤æ–­/åŠ æˆè®¡ç®—ä½¿ç”¨
 
-	float Intelligence = 0.f; // ÉùÃ÷Ò»¸ö¸¡µã±äÁ¿£¬ÓÃÀ´½ÓÊÕ²¶»ñµ½µÄ Vigor ÊıÖµ£¬ÏÈ³õÊ¼»¯Îª 0
-	GetCapturedAttributeMagnitude(IntelligenceDef, Spec, EvaluationParameters, Intelligence); // ¸ù¾İ VigorDef µÄ¶¨Òå£¬´Ó Spec ÖĞÊµ¼ÊÈ¡³ö Vigor µÄµ±Ç°ÊıÖµ£¬Ğ´Èë Vigor ±äÁ¿
+	float Intelligence = 0.f; // å£°æ˜ä¸€ä¸ªæµ®ç‚¹å˜é‡ï¼Œç”¨æ¥æ¥æ”¶æ•è·åˆ°çš„ Vigor æ•°å€¼ï¼Œå…ˆåˆå§‹åŒ–ä¸º 0
+	GetCapturedAttributeMagnitude(IntelligenceDef, Spec, EvaluationParameters, Intelligence); // æ ¹æ® VigorDef çš„å®šä¹‰ï¼Œä» Spec ä¸­å®é™…å–å‡º Vigor çš„å½“å‰æ•°å€¼ï¼Œå†™å…¥ Vigor å˜é‡
 	Intelligence = FMath::Max<float>(Intelligence, 0.f);
 
-	ICombatInterface* CombatInterface = Cast<ICombatInterface>(Spec.GetContext().GetSourceObject()); // ´ÓĞ§¹ûÉÏÏÂÎÄÖĞÈ¡³öÀ´Ô´¶ÔÏó£¬²¢³¢ÊÔ×ª»»Îª ICombatInterface ½Ó¿ÚÖ¸Õë
-	const int32 PlayerLevel = CombatInterface->GetPlayerLevel(); // Í¨¹ı½Ó¿Úµ÷ÓÃ£¬»ñÈ¡¸Ã¶ÔÏó£¨·¢ÆğÕß£©µ±Ç°µÄµÈ¼¶
-
+	int32 PlayerLevel = 1;
+	//ICombatInterface* CombatInterface = Cast<ICombatInterface>(Spec.GetContext().GetSourceObject()); // ä»æ•ˆæœä¸Šä¸‹æ–‡ä¸­å–å‡ºæ¥æºå¯¹è±¡ï¼Œå¹¶å°è¯•è½¬æ¢ä¸º ICombatInterface æ¥å£æŒ‡é’ˆ
+	if (Spec.GetContext().GetSourceObject()->Implements<UCombatInterface>())
+	{
+		PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(Spec.GetContext().GetSourceObject()); // é€šè¿‡æ¥å£è°ƒç”¨ï¼Œè·å–è¯¥å¯¹è±¡ï¼ˆå‘èµ·è€…ï¼‰å½“å‰çš„ç­‰çº§
+	}
+	
 	return 20 + 2 * Intelligence + 5 * PlayerLevel;
 }

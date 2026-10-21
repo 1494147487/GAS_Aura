@@ -1,29 +1,42 @@
-
+ï»¿
 
 
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include <AbilitySystem/AuraAbilitySystemComponent.h>
+#include <AbilitySystem/Data/AbilityInfo.h>
+#include "Player/AuraPlayerState.h"
+#include "AbilitySystem/Data/LevelUpInfo.h"
 
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
 	
-	const UAuraAttributeSet* AuraAttributeSet = Cast<UAuraAttributeSet>(AttributeSet);
-	OnHealthChanged.Broadcast(AuraAttributeSet->GetHealth());//¹ã²¥µ±Ç°µÄÉúÃüÖµ¸øËùÓĞ¶©ÔÄÁËOnHealthChangedÊÂ¼şµÄ¼àÌıÕß
-	OnMaxHealthChanged.Broadcast(AuraAttributeSet->GetMaxHealth());
-	OnManaChanged.Broadcast(AuraAttributeSet->GetMana());
-	OnMaxManaChanged.Broadcast(AuraAttributeSet->GetMaxMana());
+	
+	OnHealthChanged.Broadcast(GetAuraAS()->GetHealth());//å¹¿æ’­å½“å‰çš„ç”Ÿå‘½å€¼ç»™æ‰€æœ‰è®¢é˜…äº†OnHealthChangedäº‹ä»¶çš„ç›‘å¬è€…
+	OnMaxHealthChanged.Broadcast(GetAuraAS()->GetMaxHealth());
+	OnManaChanged.Broadcast(GetAuraAS()->GetMana());
+	OnMaxManaChanged.Broadcast(GetAuraAS()->GetMaxMana());
 
 }
 
-void UOverlayWidgetController::BindCallbacksToDependencies()//ÖØĞ´¸¸ÀàµÄĞéº¯Êı£¬°ó¶¨»Øµ÷º¯Êıµ½ÒÀÀµµÄ×é¼şÉÏ  ±¾ÖÊÉÏÒ²ÊÇ¸ö³õÊ¼»¯º¯Êı£¬°ó¶¨»Øµ÷º¯Êıµ½ÒÀÀµµÄ×é¼şÉÏ
+void UOverlayWidgetController::BindCallbacksToDependencies()//é‡å†™çˆ¶ç±»çš„è™šå‡½æ•°ï¼Œç»‘å®šå›è°ƒå‡½æ•°åˆ°ä¾èµ–çš„ç»„ä»¶ä¸Š  æœ¬è´¨ä¸Šä¹Ÿæ˜¯ä¸ªåˆå§‹åŒ–å‡½æ•°ï¼Œç»‘å®šå›è°ƒå‡½æ•°åˆ°ä¾èµ–çš„ç»„ä»¶ä¸Š
 {
 
-	////ÄÃµ½ ASC     ÓÃ Health µÄÊôĞÔ¾ä±úÈ¡³ö¡¸Health ±ä»¯Î¯ÍĞ¡¹  °Ñ this->HealthChanged ¼Ó½ø¸ÃÎ¯ÍĞµÄ¼àÌıÁĞ±í
+	////æ‹¿åˆ° ASC     ç”¨ Health çš„å±æ€§å¥æŸ„å–å‡ºã€ŒHealth å˜åŒ–å§”æ‰˜ã€  æŠŠ this->HealthChanged åŠ è¿›è¯¥å§”æ‰˜çš„ç›‘å¬åˆ—è¡¨
 	//AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-	//												//this£º»Øµ÷Ê±ÓÃµÄÊµÀı£¨Õâ¸ö OverlayWidgetController£©
+	//												//thisï¼šå›è°ƒæ—¶ç”¨çš„å®ä¾‹ï¼ˆè¿™ä¸ª OverlayWidgetControllerï¼‰
 	//	UAuraAttributeSet::GetHealthAttribute()).AddUObject(this, &UOverlayWidgetController::HealthChanged);
+
+	
+	GetAuraPS()->OnXPChangedDelegate.AddUObject(this, &UOverlayWidgetController::OnXPChanged);
+	GetAuraPS()->OnLevelChangedDelegate.AddLambda(
+		[this](int32 NewLevel)
+		{
+			OnPlayerLevelChangedDelegate.Broadcast(NewLevel);
+		}
+
+	);
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		UAuraAttributeSet::GetHealthAttribute()).AddLambda(
@@ -56,34 +69,72 @@ void UOverlayWidgetController::BindCallbacksToDependencies()//ÖØĞ´¸¸ÀàµÄĞéº¯Êı£¬
 			}
 		);
 
-	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
-		[this](const FGameplayTagContainer& AssetTags)
+
+	if (GetAuraASC())
+	{
+		if (GetAuraASC()->bStartupAbilitiesGiven)
 		{
-			for (const FGameplayTag& Tag : AssetTags)
-			{
-				const FString Msg = FString::Printf(TEXT("GE Tag: %s"), *Tag.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, Msg);
-				// ¹¹ÔìÒ»¸ö"¸¸¼¶"±êÇ© Message£¬×÷ÎªÉ¸Ñ¡Ìõ¼ş
-				// RequestGameplayTag ÊÇ´ÓÈ«¾ÖGameplayTag±íÀï²éÕÒ/ÇëÇóÒ»¸öÒÑ×¢²áµÄTag¶ÔÏó
-				// ÕâÀïÃ»ÓĞÖ±½ÓĞ´ËÀ "Message.HealthPotion"£¬¶øÊÇÖ»ÇëÇóÁË¶¥²ãµÄ "Message"£¬
-				// Ä¿µÄÊÇÈÃÕâ¸öº¯ÊıÄÜÏìÓ¦ËùÓĞ Message.* ÏÂµÄ×Ó±êÇ©£¨±ÈÈç Message.HealthPotion¡¢Message.LevelUp µÈ£©
-				FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
-
-				// ÅĞ¶Ï´«½øÀ´µÄ Tag ÊÇ·ñÊôÓÚ Message Õâ¸ö´óÀà
-				// MatchesTag ÊÇ²ã¼¶Æ¥Åä£ºÖ»Òª Tag ÊÇ MessageTag ±¾Éí»òÕßËüµÄÈÎÒâ×Ó±êÇ©£¬¾Í·µ»Ø true
-				// ÕâÀïµÄÅĞ¶ÏË³ĞòºÜ¹Ø¼ü£º±ØĞëÊÇ "¾ßÌåµÄTag.MatchesTag(ÁıÍ³µÄMessageTag)"
-				// ÒòÎªMatchesTag¼ì²éµÄÊÇ"µ÷ÓÃÕßÊÇ·ñÊôÓÚ£¨»òµÈÓÚ£©²ÎÊıÕâ¸öÀà±ğ"£¬·½Ïò·´ÁË¾ÍÓÀÔ¶Æ¥Åä²»ÉÏ
-
-				if (Tag.MatchesTag(MessageTag))
-				{
-					//// ×÷ÓÃ£ºÄÃ×ÅÒ»¸öGameplayTagÈ¥DataTableÀï²éÕÒ"Ä³Ò»ĞĞ"£¬ĞĞ½á¹¹ÀàĞÍÓÉÄ£°å²ÎÊıÖ¸¶¨Îª FUIWidgetRow
-					const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);//
-					MessageWidgetRowDelegate.Broadcast(*Row);
-				}
-				
-			}
+			BroadcastAbilityInfo();
 		}
-	
-	);
+		else
+		{
+			GetAuraASC()->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastAbilityInfo);
+		}
+			
+
+		GetAuraASC()->EffectAssetTags.AddLambda(
+			[this](const FGameplayTagContainer& AssetTags)
+			{
+				for (const FGameplayTag& Tag : AssetTags)
+				{
+					const FString Msg = FString::Printf(TEXT("GE Tag: %s"), *Tag.ToString());
+					GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, Msg);
+					// æ„é€ ä¸€ä¸ª"çˆ¶çº§"æ ‡ç­¾ Messageï¼Œä½œä¸ºç­›é€‰æ¡ä»¶
+					// RequestGameplayTag æ˜¯ä»å…¨å±€GameplayTagè¡¨é‡ŒæŸ¥æ‰¾/è¯·æ±‚ä¸€ä¸ªå·²æ³¨å†Œçš„Tagå¯¹è±¡
+					// è¿™é‡Œæ²¡æœ‰ç›´æ¥å†™æ­» "Message.HealthPotion"ï¼Œè€Œæ˜¯åªè¯·æ±‚äº†é¡¶å±‚çš„ "Message"ï¼Œ
+					// ç›®çš„æ˜¯è®©è¿™ä¸ªå‡½æ•°èƒ½å“åº”æ‰€æœ‰ Message.* ä¸‹çš„å­æ ‡ç­¾ï¼ˆæ¯”å¦‚ Message.HealthPotionã€Message.LevelUp ç­‰ï¼‰
+					FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+
+					// åˆ¤æ–­ä¼ è¿›æ¥çš„ Tag æ˜¯å¦å±äº Message è¿™ä¸ªå¤§ç±»
+					// MatchesTag æ˜¯å±‚çº§åŒ¹é…ï¼šåªè¦ Tag æ˜¯ MessageTag æœ¬èº«æˆ–è€…å®ƒçš„ä»»æ„å­æ ‡ç­¾ï¼Œå°±è¿”å› true
+					// è¿™é‡Œçš„åˆ¤æ–­é¡ºåºå¾ˆå…³é”®ï¼šå¿…é¡»æ˜¯ "å…·ä½“çš„Tag.MatchesTag(ç¬¼ç»Ÿçš„MessageTag)"
+					// å› ä¸ºMatchesTagæ£€æŸ¥çš„æ˜¯"è°ƒç”¨è€…æ˜¯å¦å±äºï¼ˆæˆ–ç­‰äºï¼‰å‚æ•°è¿™ä¸ªç±»åˆ«"ï¼Œæ–¹å‘åäº†å°±æ°¸è¿œåŒ¹é…ä¸ä¸Š
+
+					if (Tag.MatchesTag(MessageTag))
+					{
+						//// ä½œç”¨ï¼šæ‹¿ç€ä¸€ä¸ªGameplayTagå»DataTableé‡ŒæŸ¥æ‰¾"æŸä¸€è¡Œ"ï¼Œè¡Œç»“æ„ç±»å‹ç”±æ¨¡æ¿å‚æ•°æŒ‡å®šä¸º FUIWidgetRow
+						const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);//
+						MessageWidgetRowDelegate.Broadcast(*Row);
+					}
+
+				}
+			}
+
+		);
+	}
+}
+
+
+void UOverlayWidgetController::OnXPChanged(int32 NewXP)
+{
+
+	const ULevelUpInfo* LevelUpInfo = GetAuraPS()->LevelUpInfo;
+	checkf(LevelUpInfo, TEXT("Unabled to find LevelUpInfo. Please fill out AuraPlayerState Blueprint"));
+
+	const int32 Level = LevelUpInfo->FindLevelForXP(NewXP);
+	const int32 MaxLevel = LevelUpInfo->LevelUpInformation.Num();
+
+	if (Level <= MaxLevel && Level > 0)
+	{
+		const int32 LevelUpRequirement = LevelUpInfo->LevelUpInformation[Level].LevelUpRequirement;
+		const int32 PreviousLevelUpRequirement = LevelUpInfo->LevelUpInformation[Level - 1].LevelUpRequirement;
+
+		const int32 DeltaLevelRequirement = LevelUpRequirement - PreviousLevelUpRequirement;
+		const int32 XPForThisLevel = NewXP - PreviousLevelUpRequirement;
+
+		const float XPBarPercent = static_cast<float>(XPForThisLevel) / static_cast<float>(DeltaLevelRequirement);
+
+		OnXPPercentChangedDelegate.Broadcast(XPBarPercent);
+	}
 }
 

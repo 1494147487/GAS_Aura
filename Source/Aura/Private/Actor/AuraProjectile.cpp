@@ -1,4 +1,4 @@
-
+﻿
 
 
 #include "Actor/AuraProjectile.h"
@@ -10,6 +10,7 @@
 #include <Aura/Aura.h>
 #include <AbilitySystemBlueprintLibrary.h>
 #include "AbilitySystemComponent.h"
+#include <AbilitySystem/AuraAbilitySystemLibrary.h>
 
 // Sets default values
 AAuraProjectile::AAuraProjectile()
@@ -40,7 +41,7 @@ void AAuraProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	SetLifeSpan(LifeSpan);
-	//this��ί����������AAuraProjectileʵ�� *&AAuraProjectile::OnSphereOverlap���ص�������ַ���ص�����ʱ��������������
+	//this：委托所属对象，AAuraProjectile实例 *&AAuraProjectile::OnSphereOverlap：回调函数地址，重叠发生时引擎调用这个函数
 	
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
 
@@ -53,7 +54,7 @@ void AAuraProjectile::Destroyed()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-		LoopingSoundComponent->Stop();
+		if(LoopingSoundComponent)LoopingSoundComponent->Stop();
 	}
 	Super::Destroyed();
 }
@@ -61,9 +62,23 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(),FRotator::ZeroRotator);
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-	LoopingSoundComponent->Stop();
+	// ★ 没有任何伤害规格,直接返回 —— 这种投射物本来也打不出伤害
+	if (!DamageEffectSpecHandle.Data.IsValid()) return;
+
+	if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)return;
+
+	//如果碰撞到的 Actor 是友方单位，直接返回：不受伤害、不生成冲击特效、投射物也不销毁
+	if(!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor))
+	{
+		return;
+	}
+
+	if (!bHit)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+		if (LoopingSoundComponent)LoopingSoundComponent->Stop();
+	}
 
 	if (HasAuthority())
 	{

@@ -1,4 +1,4 @@
-
+﻿
 
 #pragma once
 
@@ -19,6 +19,7 @@ class IEnemyInterface;
 class UAuraInputConfig;
 class UAuraAbilitySystemComponent;
 class USplineComponent;
+class UDamageTextComponent;
 
 UCLASS()
 class AURA_API AAuraPlayerController : public APlayerController
@@ -29,6 +30,9 @@ public:
 	AAuraPlayerController();
 
 	virtual void PlayerTick(float DeltaTime)override;//`PlayerTick` 是 **APlayerController** 自带的帧回调函数
+
+	UFUNCTION(Client,Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCritialHit);
 
 protected:
 	virtual void BeginPlay()override;
@@ -91,4 +95,7 @@ private:
 	TObjectPtr<USplineComponent> Spline;
 
 	void AutoRun();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 };

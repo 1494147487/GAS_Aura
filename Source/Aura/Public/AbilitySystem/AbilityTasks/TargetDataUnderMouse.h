@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -16,21 +16,22 @@ class AURA_API UTargetDataUnderMouse : public UAbilityTask
 	GENERATED_BODY()
 	
 public:															
-																	//// À¶Í¼½ÚµãÉÏÏÔÊ¾µÄÃû×Ö(Ìæ´úÕæÊµº¯ÊıÃû CreateTargetDataUnderMouse)
+																	//// è“å›¾èŠ‚ç‚¹ä¸Šæ˜¾ç¤ºçš„åå­—(æ›¿ä»£çœŸå®å‡½æ•°å CreateTargetDataUnderMouse)
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (DisplayName = "TargetDataUnderMouse", 
-		HidePin = "OwningAbility", //// Òş²Ø OwningAbility ²ÎÊıµÄÊäÈëÒı½Å,²»ÈÃÓÃ»§ÊÖ¶¯Á¬Ïß
-		DefaultToSelf = "OwningAbility",  // Òş²ØµÄÕâ¸ö²ÎÊı×Ô¶¯ÌîÎª"µ÷ÓÃÕß×ÔÉí"(µ±Ç°¼¼ÄÜÀ¶Í¼ÊµÀı)
-		BlueprintInternalUseOnly = "true")) // Õâ¸öº¯Êı±¾Éí²»³öÏÖÔÚÀ¶Í¼½ÚµãËÑË÷Àï,Ö»×÷ÎªÒì²½ÈÎÎñ½ÚµãµÄÄÚ²¿ÊµÏÖ
+		HidePin = "OwningAbility", //// éšè— OwningAbility å‚æ•°çš„è¾“å…¥å¼•è„š,ä¸è®©ç”¨æˆ·æ‰‹åŠ¨è¿çº¿
+		DefaultToSelf = "OwningAbility",  // éšè—çš„è¿™ä¸ªå‚æ•°è‡ªåŠ¨å¡«ä¸º"è°ƒç”¨è€…è‡ªèº«"(å½“å‰æŠ€èƒ½è“å›¾å®ä¾‹)
+		BlueprintInternalUseOnly = "true")) // è¿™ä¸ªå‡½æ•°æœ¬èº«ä¸å‡ºç°åœ¨è“å›¾èŠ‚ç‚¹æœç´¢é‡Œ,åªä½œä¸ºå¼‚æ­¥ä»»åŠ¡èŠ‚ç‚¹çš„å†…éƒ¨å®ç°
 	static UTargetDataUnderMouse* CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility); 
-	//static:¾²Ì¬³ÉÔ±º¯Êı,²»ĞèÒªÏÈÓĞÒ»¸ö UTargetDataUnderMouse ÊµÀı²ÅÄÜµ÷ÓÃ
+	//static:é™æ€æˆå‘˜å‡½æ•°,ä¸éœ€è¦å…ˆæœ‰ä¸€ä¸ª UTargetDataUnderMouse å®ä¾‹æ‰èƒ½è°ƒç”¨
 
-	UPROPERTY(BlueprintAssignable)//ÉùÃ÷Õâ¸ö AbilityTask Àà¶ÔÍâ±©Â¶µÄÎ¯ÍĞ(Êä³öÒı½Å)
+	UPROPERTY(BlueprintAssignable)//å£°æ˜è¿™ä¸ª AbilityTask ç±»å¯¹å¤–æš´éœ²çš„å§”æ‰˜(è¾“å‡ºå¼•è„š)
 	FMouseTargetDataSignature ValidData;
 
 private:
 	virtual void Activate()override;
 
-	void SendMouseCursorData();
+	void SendMouseCursorData();//
+
 
 	void OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 };

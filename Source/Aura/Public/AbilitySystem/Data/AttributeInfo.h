@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -15,19 +15,19 @@ struct FAuraAttributeInfo
 {
 	GENERATED_BODY()
 
-	// ±êÊ¶ÕâÌõÊı¾İ¶ÔÓ¦ÄÄÒ»¸öÊôĞÔ(±ÈÈçÁ¦Á¿¡¢»¤¼×)
+	// æ ‡è¯†è¿™æ¡æ•°æ®å¯¹åº”å“ªä¸€ä¸ªå±æ€§(æ¯”å¦‚åŠ›é‡ã€æŠ¤ç”²)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag AttributeTag = FGameplayTag();
 
-	// ÊôĞÔÔÚ UI ÉÏÏÔÊ¾µÄÃû×Ö
+	// å±æ€§åœ¨ UI ä¸Šæ˜¾ç¤ºçš„åå­—
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FText AttributeName = FText();
 
-	// ÊôĞÔµÄÃèÊöÎÄ×Ö(±ÈÈç Tooltip ËµÃ÷)
+	// å±æ€§çš„æè¿°æ–‡å­—(æ¯”å¦‚ Tooltip è¯´æ˜)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FText AttributeDescription = FText();
 
-	// ÊôĞÔµ±Ç°µÄÊıÖµ£¬ÔËĞĞÊ±¸³Öµ£¬²»ÔÚ±à¼­Æ÷ÀïÅäÖÃ
+	// å±æ€§å½“å‰çš„æ•°å€¼ï¼Œè¿è¡Œæ—¶èµ‹å€¼ï¼Œä¸åœ¨ç¼–è¾‘å™¨é‡Œé…ç½®
 	UPROPERTY(BlueprintReadOnly)
 	float AttributeValue = 0.f;
 };

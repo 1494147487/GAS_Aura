@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -19,13 +19,13 @@ class AURA_API UAuraUserWidget : public UUserWidget
 	
 public:
 
-	UFUNCTION(BlueprintCallable)//ÉùÃ÷Ò»¸ö¿ÉÒÔÔÚÀ¶Í¼ÖĞµ÷ÓÃµÄº¯Êı
+	UFUNCTION(BlueprintCallable)//å£°æ˜ä¸€ä¸ªå¯ä»¥åœ¨è“å›¾ä¸­è°ƒç”¨çš„å‡½æ•°
 	void SetWidgetController(UObject* InWidgetController);
 
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UObject> WidgetController;//
 
 protected:
-	UFUNCTION(BlueprintImplementableEvent)//C++²»Ğ´ÊµÏÖ£¬À¶Í¼¸ºÔğÊµÏÖ
+	UFUNCTION(BlueprintImplementableEvent)//C++ä¸å†™å®ç°ï¼Œè“å›¾è´Ÿè´£å®ç°
 	void WidgetControllerSet();
 };

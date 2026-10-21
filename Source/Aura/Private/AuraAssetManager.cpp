@@ -1,4 +1,4 @@
-
+ï»¿
 
 
 #include "AuraAssetManager.h"
@@ -19,5 +19,5 @@ void UAuraAssetManager::StartInitialLoading()//
 
 	FAuraGameplayTags::InitializeNativeGameplayTags();
 
-	UAbilitySystemGlobals::Get().InitGlobalData();//:»ñÈ¡ GAS ÏµÍ³ÀïÄÇ¸öÈ«¾ÖÎ¨Ò»µÄ"ÅäÖÃ/¹ÜÀí"¶ÔÏó,ÈÃËüÈ¥¼ÓÔØÒ»Ğ©Õû¸öÓÎÏ·¶¼ÒªÓÃµ½µÄÈ«¾ÖÊı¾İ±í
+	UAbilitySystemGlobals::Get().InitGlobalData();//:è·å– GAS ç³»ç»Ÿé‡Œé‚£ä¸ªå…¨å±€å”¯ä¸€çš„"é…ç½®/ç®¡ç†"å¯¹è±¡,è®©å®ƒå»åŠ è½½ä¸€äº›æ•´ä¸ªæ¸¸æˆéƒ½è¦ç”¨åˆ°çš„å…¨å±€æ•°æ®è¡¨
 }

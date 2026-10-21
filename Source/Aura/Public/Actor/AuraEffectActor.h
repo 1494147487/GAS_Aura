@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -41,16 +41,13 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable)//????????§Ö???
+	UFUNCTION(BlueprintCallable)//????????Ðµ???
 	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);
 
 	UFUNCTION(BlueprintCallable)
 	void OnOverlap(AActor* TargetActor);
 	UFUNCTION(BlueprintCallable)
 	void OnEndOverlap(AActor* TargetActor);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
-	bool beDestroyOnEffectOnEffectRemoval = false;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Applied Effects")
 	TSubclassOf<UGameplayEffect>InstantGameplayEffectClass;//
@@ -77,6 +74,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
 	bool bDestroyOnEffectApplication = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
+	bool bApplyEffectToEnemies = false;
 
 	TMap<FActiveGameplayEffectHandle, UAbilitySystemComponent*> ActiveEffectHandles;
 

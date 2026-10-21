@@ -1,4 +1,4 @@
-
+ï»¿
 
 
 #include "AbilitySystem/AuraAttributeSet.h"
@@ -8,6 +8,12 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "AuraGameplayTags.h"
+#include <Interaction/CombatInterface.h>
+#include "Kismet/GameplayStatics.h"        // æä¾›UGameplayStaticsç±»å’ŒGetPlayerControllerå‡½æ•°
+#include "Player/AuraPlayerController.h"   // æä¾›AAuraPlayerControllerç±»(è·¯å¾„æŒ‰ä½ é¡¹ç›®å®é™…å­˜æ”¾ä½ç½®è°ƒæ•´)
+#include <AbilitySystem/AuraAbilitySystemLibrary.h>
+#include "Aura/AuraLogChannels.h"
+#include "Interaction/PlayerInterface.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -36,13 +42,18 @@ UAuraAttributeSet::UAuraAttributeSet()
 	TagsToAttribute.Add(GameplayTags.Attributes_Secondary_MaxHealth, GetMaxHealthAttribute());
 	TagsToAttribute.Add(GameplayTags.Attributes_Secondary_MaxMana, GetMaxManaAttribute());
 
+	TagsToAttribute.Add(GameplayTags.Attributes_Resistance_Fire, GetFireResistanceAttribute());
+	TagsToAttribute.Add(GameplayTags.Attributes_Resistance_Lightning, GetLightningResistanceAttribute());
+	TagsToAttribute.Add(GameplayTags.Attributes_Resistance_Arcane, GetArcaneResistanceAttribute());
+	TagsToAttribute.Add(GameplayTags.Attributes_Resistance_Physical, GetPhysicalResistanceAttribute());
+
 	
 }
 
 void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	//Õâ¸öºê»á°ÑHealthÊôĞÔ×¢²áµ½ÊôĞÔÏµÍ³µÄÉúÃüÖÜÆÚ¸´ÖÆÁĞ±íÖĞ£¬²¢ÉèÖÃ¸´ÖÆÌõ¼şÎªCOND_None£¬±íÊ¾ÎŞÌõ¼ş¸´ÖÆ£¬Í¬Ê±ÉèÖÃÍ¨ÖªÌõ¼şÎªREPNOTIFY_Always£¬±íÊ¾Ã¿´ÎÊôĞÔ±ä»¯¶¼»á´¥·¢Í¨Öª
+	//è¿™ä¸ªå®ä¼šæŠŠHealthå±æ€§æ³¨å†Œåˆ°å±æ€§ç³»ç»Ÿçš„ç”Ÿå‘½å‘¨æœŸå¤åˆ¶åˆ—è¡¨ä¸­ï¼Œå¹¶è®¾ç½®å¤åˆ¶æ¡ä»¶ä¸ºCOND_Noneï¼Œè¡¨ç¤ºæ— æ¡ä»¶å¤åˆ¶ï¼ŒåŒæ—¶è®¾ç½®é€šçŸ¥æ¡ä»¶ä¸ºREPNOTIFY_Alwaysï¼Œè¡¨ç¤ºæ¯æ¬¡å±æ€§å˜åŒ–éƒ½ä¼šè§¦å‘é€šçŸ¥
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Strength, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Intelligence, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Resilience, COND_None, REPNOTIFY_Always);
@@ -61,6 +72,11 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CriticalHitResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, HealthRegeneration, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ManaRegeneration, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, FireResistance, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, LightningResistance, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ArcaneResistance, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, PhysicalResistance, COND_None, REPNOTIFY_Always);
 	
 	
 }
@@ -97,9 +113,9 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 {
 
 	Props.EffectContextHandle = Data.EffectSpec.GetContext();
-	//´Ó Context ÀïÈ¡³ö**"×î³õ·¢ÆğÕâ´ÎĞ§¹ûµÄÄÇ¸ö½ÇÉ«"µÄ ASC**
+	//ä» Context é‡Œå–å‡º**"æœ€åˆå‘èµ·è¿™æ¬¡æ•ˆæœçš„é‚£ä¸ªè§’è‰²"çš„ ASC**
 	Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
-	//ASC Êµ¼Ê¿ØÖÆµÄÄÇ¸ö Actor ±¾Ìå
+	//ASC å®é™…æ§åˆ¶çš„é‚£ä¸ª Actor æœ¬ä½“
 	if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
 	{
 		Props.SourceAvatarActor = Props.SourceASC->AbilityActorInfo->AvatarActor.Get();
@@ -127,32 +143,163 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 
 }
 
+
+
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
 
 	FEffectProperties Props;
 	SetEffectProperties(Data, Props);
-	// Ö»´¦ÀíÕâ´ÎĞ§¹ûĞŞ¸ÄµÄÊôĞÔÊÇÑªÁ¿(Health)µÄÇé¿ö
+	// åªå¤„ç†è¿™æ¬¡æ•ˆæœä¿®æ”¹çš„å±æ€§æ˜¯è¡€é‡(Health)çš„æƒ…å†µ
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		//GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, FString::Printf(TEXT("Health: %f"), GetHealth()));
-
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
-		UE_LOG(LogTemp, Warning, TEXT("Changed Health on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());
-		
+		//UE_LOG(LogTemp, Warning, TEXT("Changed Health on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());	
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
 	}
+	if (Data.EvaluatedData.Attribute == GetInComingDamageAttribute())
+	{
+		const float LocalIncomingDamage = GetInComingDamage();
+		SetInComingDamage(0.f);
+		if (LocalIncomingDamage > 0.f)
+		{
+			const float NewHealth = GetHealth() - LocalIncomingDamage;
+			SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+
+			const bool bFatal = NewHealth <= 0.f;
+			if (!bFatal)
+			{
+				FGameplayTagContainer TagContainer;                                    // å»ºä¸€ä¸ªç©ºå®¹å™¨
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);        // æŠŠå—å‡»æ ‡ç­¾æ”¾è¿›å»
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);              // æŒ‰è¿™ä¸ªå®¹å™¨å»åŒ¹é…å¹¶æ¿€æ´»æŠ€èƒ½
+			}
+			else
+			{
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if (CombatInterface)
+				{
+					CombatInterface->Die();
+				}
+				SendXPEvent(Props);
+			}
+
+			const bool bBlock = UAuraAbilitySystemLibrary::IsBlockedHit(Props.EffectContextHandle);
+			const bool bCritical = UAuraAbilitySystemLibrary::IsCriticalHit(Props.EffectContextHandle);
+			ShowFloatingText(Props, LocalIncomingDamage,bBlock,bCritical);
+			
+		}
+	}
+
+	if (Data.EvaluatedData.Attribute == GetInComingXPAttribute())
+	{
+		const float LocalIncomingXP = GetInComingXP();
+		SetInComingXP(0.f);
+		UE_LOG(LogAura, Log, TEXT("Incoming XP: %f"), LocalIncomingXP);
+
+
+		//TODO åˆ¤æ–­æ˜¯å¦éœ€è¦å‡çº§
+
+
+		if (Props.SourceCharacter->Implements<UPlayerInterface>() && Props.SourceCharacter->Implements<UCombatInterface>())
+		{
+			int32 CurrentLevel = ICombatInterface::Execute_GetPlayerLevel(Props.SourceCharacter);
+			int32 CurrentXP = IPlayerInterface::Execute_GetXP(Props.SourceCharacter);
+
+			int32 NewLevel = IPlayerInterface::Execute_FindLevelForXP(Props.SourceCharacter, CurrentXP + LocalIncomingXP);
+			int32 NumLevelUps = NewLevel - CurrentLevel;
+			if (NumLevelUps > 0)
+			{
+
+				//TODO:
+				// GetAttributePointsReward()
+				// GetSpellPointsReward()
+				// AddToPlayerLevel()
+				// AddToAttributePoints()
+				// AddToSpellPoints()
+				// Fill up Health and Mana
+
+				const int32 AttributePointsReward = IPlayerInterface::Execute_GetAttributePointsReward(Props.SourceCharacter, CurrentLevel);
+				const int32 SpellPointsReward = IPlayerInterface::Execute_GetSpellPointsReward(Props.SourceCharacter, CurrentLevel);
+
+				IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter, NumLevelUps);
+				IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
+				IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
+
+				bTopOffHealth = true;
+				bTopOffMana = true;
+
+				IPlayerInterface::Execute_LevelUp(Props.SourceCharacter);
+			}
+
+			IPlayerInterface::Execute_AddToXP(Props.SourceCharacter, LocalIncomingXP);
+		}
+	
+	}
 
 }
 
+void UAuraAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+	if (Attribute == GetMaxHealthAttribute() && bTopOffHealth)
+	{
+		SetHealth(GetMaxHealth());
+		bTopOffHealth = false;
+	}
+	if (Attribute == GetMaxManaAttribute() && bTopOffMana)
+	{
+		SetMana(GetMaxMana());
+		bTopOffMana = false;
+	}
+
+
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit, bool bCritialHit)const
+{
+	if (Props.SourceCharacter != Props.TargetCharacter)
+	{
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))
+		{
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter,bBlockedHit,bCritialHit);//å¼•æ“è‡ªå¸¦çš„å®¢æˆ·ç«¯rpcå‡½æ•°
+			return;
+
+		}
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller))
+		{
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCritialHit);//å¼•æ“è‡ªå¸¦çš„å®¢æˆ·ç«¯rpcå‡½æ•°
+		}
+	}
+}
+
+void UAuraAttributeSet::SendXPEvent(const FEffectProperties& Props)
+{
+	if (Props.TargetCharacter->Implements<UCombatInterface>())
+	{
+		int32 TargetLevel = ICombatInterface::Execute_GetPlayerLevel(Props.TargetCharacter);
+		ECharacterClass TargetClass = ICombatInterface::Execute_GetCharacterClass(Props.TargetCharacter);
+		int32 XPReward = UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(Props.TargetCharacter, TargetClass, TargetLevel);
+
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		FGameplayEventData Payload;
+		Payload.EventTag = GameplayTags.Attributes_Meta_IncomingXP;
+		Payload.EventMagnitude = XPReward;
+
+		//ä½œç”¨æ˜¯æŠŠä¸€æ¡"å¸¦æ ‡ç­¾å’Œæ•°æ®çš„é€šçŸ¥"é€åˆ°æŒ‡å®š Actor çš„ ASC ä¸Š
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Props.SourceCharacter, GameplayTags.Attributes_Meta_IncomingXP, Payload);
+	}
+
+
+}
 
 void UAuraAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)const
 {
-	//Õâ¸öºê»áµ÷ÓÃOnAttributeChangeº¯Êı£¬Í¨ÖªÊôĞÔ·¢ÉúÁË±ä»¯£¬°Ñ**ĞÂÖµ¡¢¾ÉÖµ**´ò°ü·¢ËÍ¸øËùÓĞÌáÇ°°ó¶¨ÁËÉúÃüÖµ±ä»¯ÊÂ¼şµÄ¼àÌıÕß
+	//è¿™ä¸ªå®ä¼šè°ƒç”¨OnAttributeChangeå‡½æ•°ï¼Œé€šçŸ¥å±æ€§å‘ç”Ÿäº†å˜åŒ–ï¼ŒæŠŠ**æ–°å€¼ã€æ—§å€¼**æ‰“åŒ…å‘é€ç»™æ‰€æœ‰æå‰ç»‘å®šäº†ç”Ÿå‘½å€¼å˜åŒ–äº‹ä»¶çš„ç›‘å¬è€…
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, Health, OldHealth);
 }
 
@@ -229,6 +376,27 @@ void UAuraAttributeSet::OnRep_HealthRegeneration(const FGameplayAttributeData& O
 void UAuraAttributeSet::OnRep_ManaRegeneration(const FGameplayAttributeData& OldManaRegeneration) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ManaRegeneration, OldManaRegeneration);
+}
+
+
+void UAuraAttributeSet::OnRep_FireResistance(const FGameplayAttributeData& OldFireResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, FireResistance, OldFireResistance);
+}
+
+void UAuraAttributeSet::OnRep_LightningResistance(const FGameplayAttributeData& OldLightningResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, LightningResistance, OldLightningResistance);
+}
+
+void UAuraAttributeSet::OnRep_ArcaneResistance(const FGameplayAttributeData& OldArcaneResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ArcaneResistance, OldArcaneResistance);
+}
+
+void UAuraAttributeSet::OnRep_PhysicalResistance(const FGameplayAttributeData& OldPhysicalResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, PhysicalResistance, OldPhysicalResistance);
 }
 
 

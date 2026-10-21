@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -9,11 +9,21 @@
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStateChangedSignature, int32, NewValue);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FAuraAbilityInfo&, Info);
+
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UAuraAttributeSet;
+class AAuraPlayerController;
+class AAuraPlayerState;
+class UAuraAbilitySystemComponent;
+class UAbilityInfo;
 
-USTRUCT(BlueprintType)//°ÑÒ»¸öÆÕÍ¨C++½á¹¹Ìå"×¢²á"½øUE·´ÉäÏµÍ³
+
+USTRUCT(BlueprintType)//æŠŠä¸€ä¸ªæ™®é€šC++ç»“æ„ä½“"æ³¨å†Œ"è¿›UEåå°„ç³»ç»Ÿ
 struct FWidgetControllerParams
 {
 	GENERATED_BODY()
@@ -22,7 +32,7 @@ struct FWidgetControllerParams
 	FWidgetControllerParams(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS):
 	PlayerController(PC),PlayerState(PS),AbilitySystemComponent(ASC),AttributeSet(AS){}
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)//¿ÉÒÔÔÚ±à¼­Æ÷Ï¸½ÚÃæ°åÀï±»ÊÖ¶¯±à¼­ ÔÊĞíÀ¶Í¼¶ÁÈ¡ºÍĞŞ¸ÄÕâ¸ö×Ö¶ÎµÄÖµ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)//å¯ä»¥åœ¨ç¼–è¾‘å™¨ç»†èŠ‚é¢æ¿é‡Œè¢«æ‰‹åŠ¨ç¼–è¾‘ å…è®¸è“å›¾è¯»å–å’Œä¿®æ”¹è¿™ä¸ªå­—æ®µçš„å€¼
 	TObjectPtr<APlayerController> PlayerController = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -43,24 +53,49 @@ class AURA_API UAuraWidgetController : public UObject
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetWidgetControllerParams(const FWidgetControllerParams& Params);//°Ñ´«½øÀ´µÄ½á¹¹Ìå½â°ü£¬·Ö±ğ´æ½ø×Ô¼ºµÄËÄ¸ö³ÉÔ±±äÁ¿Àï£º
+	void SetWidgetControllerParams(const FWidgetControllerParams& Params);//æŠŠä¼ è¿›æ¥çš„ç»“æ„ä½“è§£åŒ…ï¼Œåˆ†åˆ«å­˜è¿›è‡ªå·±çš„å››ä¸ªæˆå‘˜å˜é‡é‡Œï¼š
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void BroadcastInitialValues();//Ğéº¯Êı£¬×ÓÀà¿ÉÒÔÖØĞ´ËüÀ´¹ã²¥³õÊ¼Öµ
+	virtual void BroadcastInitialValues();//è™šå‡½æ•°ï¼Œå­ç±»å¯ä»¥é‡å†™å®ƒæ¥å¹¿æ’­åˆå§‹å€¼
 
-	virtual void BindCallbacksToDependencies();//Ğéº¯Êı£¬×ÓÀà¿ÉÒÔÖØĞ´ËüÀ´°ó¶¨»Øµ÷º¯Êıµ½ÒÀÀµµÄ×é¼şÉÏ
+	virtual void BindCallbacksToDependencies();//è™šå‡½æ•°ï¼Œå­ç±»å¯ä»¥é‡å†™å®ƒæ¥ç»‘å®šå›è°ƒå‡½æ•°åˆ°ä¾èµ–çš„ç»„ä»¶ä¸Š
+
+	UPROPERTY(BlueprintAssignable, Category = "GAS|Messages")
+	FAbilityInfoSignature AbilityInfoDelegate;//
+
+	void BroadcastAbilityInfo();
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
+	TObjectPtr<UAbilityInfo>AbilityInfo;
+
 	UPROPERTY(BlueprintReadOnly,Category = "WidgetController")
-	TObjectPtr<APlayerController> PlayerController;//¿ÉÄÜUIĞèÒª¶ÁÈ¡Íæ¼ÒÌØÓĞµÄ×´Ì¬£¨±ÈÈçPlayerStateÉÏ´æµÄµÈ¼¶¡¢¾­Ñé£©
+	TObjectPtr<APlayerController> PlayerController;//å¯èƒ½UIéœ€è¦è¯»å–ç©å®¶ç‰¹æœ‰çš„çŠ¶æ€ï¼ˆæ¯”å¦‚PlayerStateä¸Šå­˜çš„ç­‰çº§ã€ç»éªŒï¼‰
 
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
 	TObjectPtr<APlayerState> PlayerState;
 
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;//GASµÄºËĞÄ×é¼ş£¬¼¼ÄÜ¡¢Ğ§¹û¡¢ÊôĞÔµÄ±ä»¯¶¼Í¨¹ıËü
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;//GASçš„æ ¸å¿ƒç»„ä»¶ï¼ŒæŠ€èƒ½ã€æ•ˆæœã€å±æ€§çš„å˜åŒ–éƒ½é€šè¿‡å®ƒ
 
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-	TObjectPtr<UAttributeSet> AttributeSet;//¾ßÌå´æÑªÁ¿¡¢·¨Á¦µÈÊıÖµÊôĞÔµÄµØ·½
+	TObjectPtr<UAttributeSet> AttributeSet;//å…·ä½“å­˜è¡€é‡ã€æ³•åŠ›ç­‰æ•°å€¼å±æ€§çš„åœ°æ–¹
+
+	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
+	TObjectPtr<AAuraPlayerController> AuraPlayerController;
+
+	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
+	TObjectPtr<AAuraPlayerState> AuraPlayerState;
+
+	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
+	TObjectPtr<UAuraAttributeSet> AuraAttributeSet;
+
+	AAuraPlayerController* GetAuraPC();
+	AAuraPlayerState* GetAuraPS();
+	UAuraAbilitySystemComponent* GetAuraASC();
+	UAuraAttributeSet* GetAuraAS();
 };
